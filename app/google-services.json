@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "557839488708",
+    "firebase_url": "https://chattool-a6a4d.firebaseio.com",
+    "project_id": "chattool-a6a4d",
+    "storage_bucket": "chattool-a6a4d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:557839488708:android:ed6c4f5d6f820ebc",
+        "android_client_info": {
+          "package_name": "com.example.r30_a.chattool"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "557839488708-hd35fs011cs7kda72kpl07l0okr86b8r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.r30_a.chattool",
+            "certificate_hash": "44435cee14bac131f7caa6aa7aa2d2c9c6ee1304"
+          }
+        },
+        {
+          "client_id": "557839488708-ob9cubn71jq5to9lr7c0dujbcg32lu7f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCACdKewCOr0sgrafFwbx1nE25PATI5po0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "557839488708-ob9cubn71jq5to9lr7c0dujbcg32lu7f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

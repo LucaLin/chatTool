@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">ChatTool</string>
+    <string name="loginSuccess">登入成功</string>
+    <string name="loginFail">登入失敗，請稍候再試</string>
+
+    <string name="welcome">歡迎回來： </string>
+</resources>

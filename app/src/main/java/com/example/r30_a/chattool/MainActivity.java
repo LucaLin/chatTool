@@ -1,4 +1,4 @@
-package com.microsugar.r30_a.chattool;
+package com.example.r30_a.chattool;
 
 import android.content.Context;
 import android.content.Intent;
@@ -222,8 +222,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void setValues(ChatMessage chatMessage) {
-            txvUser.setText(chatMessage.getMsg_user());
-            txvMsg.setText(chatMessage.getMsg_txv());
+            txvUser.setText(chatMessage.getUserName());
+            txvMsg.setText(chatMessage.getMessage());
             txvTime.setText(DateFormat.format("yyyy-MM-dd (HH:mm:ss)", chatMessage.getTime()));
 
         }

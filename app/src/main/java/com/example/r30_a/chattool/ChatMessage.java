@@ -4,33 +4,33 @@ import java.util.Date;
 
 public class ChatMessage {
 
-    private String msg_user;
-    private String msg_txv;
-    private long time;
+    private String userName;//使用者名稱
+    private String message;//訊息內容
+    private long time;//發送時間
 
-    public ChatMessage(String msg_user, String msg_txv) {
-        this.msg_user = msg_user;
-        this.msg_txv = msg_txv;
+    public ChatMessage(String userName, String message) {
+        this.userName = userName;
+        this.message = message;
         time = new Date().getTime();
     }
 
     public ChatMessage() {
     }
 
-    public String getMsg_user() {
-        return msg_user;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setMsg_user(String msg_user) {
-        this.msg_user = msg_user;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
-    public String getMsg_txv() {
-        return msg_txv;
+    public String getMessage() {
+        return message;
     }
 
-    public void setMsg_txv(String msg_txv) {
-        this.msg_txv = msg_txv;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     public long getTime() {

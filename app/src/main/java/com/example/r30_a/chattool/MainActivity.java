@@ -138,18 +138,6 @@ public class MainActivity extends AppCompatActivity {
 
         try {
 
-//            FirebaseListOptions<ChatMessage> options = new FirebaseListOptions.Builder<ChatMessage>()
-//                    .setQuery(reference, ChatMessage.class)//自定model
-//                    .setLifecycleOwner(this)
-//                    .setLayout(R.layout.message)//自定layout
-//                    .build();
-
-//            FirebaseRecyclerOptions options = new FirebaseRecyclerOptions.Builder<ChatMessage>()
-//                    .setQuery(reference, ChatMessage.class)//自定model
-//                    .setLifecycleOwner(this)
-////                    .setLayout(R.layout.message)//自定layout
-//                    .build();
-
             adapter = new FirebaseRecyclerAdapter<ChatMessage, ChatMessageHolder>
                     (ChatMessage.class, R.layout.message, ChatMessageHolder.class, reference.limitToLast(10)) {
 
@@ -161,29 +149,12 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 protected void populateViewHolder(ChatMessageHolder viewHolder, ChatMessage model, int position) {
-
                         viewHolder.setValues(model);
 
                 }
             };
 
 
-//            adapter = new FirebaseListAdapter<ChatMessage>(options) {//訊息有更新時會呼叫populateView更新清單
-//                @Override
-//                protected void populateView(@NonNull View v, @NonNull ChatMessage model, int position) {
-//                    TextView txvUser = (TextView) v.findViewById(R.id.txv_user);
-//                    TextView txvMsg = (TextView) v.findViewById(R.id.txv_msg);
-//                    TextView txvTime = (TextView) v.findViewById(R.id.txv_time);
-//
-//                    txvMsg.setText(model.getMessage());
-//                    txvUser.setText(model.getUserName());
-//                    txvTime.setText(DateFormat.format("yyyy-MM-dd (HH:mm:ss)", model.getTime()));
-//
-//                }
-//            };
-
-            //listView = (ListView) findViewById(R.id.list_msg);
-            //listView.setAdapter(adapter);
             recyclerView.setLayoutManager(linearLayoutManager);
             recyclerView.setAdapter(adapter);
 

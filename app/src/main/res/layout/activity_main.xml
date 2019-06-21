@@ -12,44 +12,38 @@
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:clickable="true"
-        android:tint="@android:color/white"
-        android:src="@drawable/icons_send24"
-        android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:clickable="true"
+        android:src="@drawable/icons_send24"
+        android:tint="@android:color/white"
         app:fabSize="mini" />
-    
+
     <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_toLeftOf="@id/fab"
+        android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true">
+        android:layout_toLeftOf="@id/fab">
 
         <EditText
             android:id="@+id/edtInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="input"/>
-
+            android:hint="input" />
 
     </android.support.design.widget.TextInputLayout>
 
-    <ListView
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
         android:layout_above="@id/fab"
-        android:dividerHeight="16dp"
-        android:divider="@android:color/transparent"
-        android:id="@+id/list_msg"
-        android:layout_margin="10dp"
-        android:layout_marginBottom="16dp">
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp">
 
-
-    </ListView>
-
-
+    </android.support.v7.widget.RecyclerView>
 
 </RelativeLayout>

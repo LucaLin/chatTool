@@ -2,6 +2,8 @@ package com.example.r30_a.chattool;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -34,6 +36,10 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import android.text.format.DateFormat;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -50,11 +56,18 @@ public class MainActivity extends AppCompatActivity {
 
     private DatabaseReference reference;
     private InputMethodManager imm;
+    String uuid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if(Build.VERSION.SDK_INT < 28){
+            uuid = Build.SERIAL;
+        }else {
+            uuid = Settings.System.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+        }
 
         reference = FirebaseDatabase.getInstance().getReference();
         
@@ -80,10 +93,11 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 //客製訊息model並推送出去
                 try {
+                    String msg = edtInput.getText().toString();
+                    String userName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+                    String time = new SimpleDateFormat("hh:mm a", Locale.ENGLISH).format(new Date());
                     reference.push()
-                            .setValue(new ChatMessage(
-                                    FirebaseAuth.getInstance().getCurrentUser().getDisplayName(),
-                                    edtInput.getText().toString()));
+                            .setValue(new ChatMessage(userName, msg, uuid));
 
                     edtInput.setText("");
                     imm.hideSoftInputFromWindow(v.getWindowToken(), 0);//送出後鍵盤收起
@@ -195,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
         public void setValues(ChatMessage chatMessage) {
             txvUser.setText(chatMessage.getUserName());
             txvMsg.setText(chatMessage.getMessage());
-            txvTime.setText(DateFormat.format("yyyy-MM-dd (HH:mm:ss)", chatMessage.getTime()));
+            txvTime.setText(String.valueOf(new SimpleDateFormat("hh:mm a", Locale.ENGLISH).format(chatMessage.getTime())));
 
         }
     }

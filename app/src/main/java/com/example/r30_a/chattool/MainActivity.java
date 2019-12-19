@@ -19,11 +19,10 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.r30_a.chattool.ChatMessage;
-import com.example.r30_a.chattool.R;
 import com.firebase.ui.auth.AuthUI;
 //import com.firebase.ui.database.FirebaseListOptions;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
@@ -33,8 +32,6 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-
-import android.text.format.DateFormat;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -63,14 +60,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if(Build.VERSION.SDK_INT < 28){
+        if (Build.VERSION.SDK_INT < 28) {
             uuid = Build.SERIAL;
-        }else {
+        } else {
             uuid = Settings.System.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
         }
 
         reference = FirebaseDatabase.getInstance().getReference();
-        
+
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -101,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
 
                     edtInput.setText("");
                     imm.hideSoftInputFromWindow(v.getWindowToken(), 0);//送出後鍵盤收起
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
@@ -163,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 protected void populateViewHolder(ChatMessageHolder viewHolder, ChatMessage model, int position) {
-                        viewHolder.setValues(model);
+                    viewHolder.setValues(model);
 
                 }
             };
@@ -194,22 +191,44 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public class ChatMessageHolder extends RecyclerView.ViewHolder {
-        private TextView txvUser;
-        private TextView txvMsg;
-        private TextView txvTime;
+        private TextView txvUser_Other;
+        private TextView txvMsg_Other;
+        private TextView txvTime_Other;
+
+        private TextView txvMsg_User;
+        private TextView txvTime_User;
+
+        RelativeLayout userLayout, otherUserLayout;
 
         public ChatMessageHolder(@NonNull View v) {
             super(v);
-            txvUser = (TextView) v.findViewById(R.id.txv_user);
-            txvMsg = (TextView) v.findViewById(R.id.txv_msg);
-            txvTime = (TextView) v.findViewById(R.id.txv_time);
+            txvUser_Other = (TextView) v.findViewById(R.id.txv_user_other);
+            txvMsg_Other = (TextView) v.findViewById(R.id.txv_msg_other);
+            txvTime_Other = (TextView) v.findViewById(R.id.txv_time_other);
 
+            txvMsg_User = (TextView)v.findViewById(R.id.txv_msg_user);
+            txvTime_User = (TextView)v.findViewById(R.id.txv_time_user);
+
+            userLayout = (RelativeLayout)v.findViewById(R.id.userLayout);
+            otherUserLayout = (RelativeLayout)v.findViewById(R.id.otherUserLayout);
         }
 
         public void setValues(ChatMessage chatMessage) {
-            txvUser.setText(chatMessage.getUserName());
-            txvMsg.setText(chatMessage.getMessage());
-            txvTime.setText(String.valueOf(new SimpleDateFormat("hh:mm a", Locale.ENGLISH).format(chatMessage.getTime())));
+            if (chatMessage.getUuid() != uuid) {
+
+                otherUserLayout.setVisibility(View.VISIBLE);
+                userLayout.setVisibility(View.GONE);
+
+                txvUser_Other.setText(chatMessage.getUserName());
+                txvMsg_Other.setText(chatMessage.getMessage());
+                txvTime_Other.setText(String.valueOf(new SimpleDateFormat("hh:mm a", Locale.ENGLISH).format(chatMessage.getTime())));
+            }else {
+                userLayout.setVisibility(View.VISIBLE);
+                otherUserLayout.setVisibility(View.GONE);
+
+                txvMsg_User.setText(chatMessage.getMessage());
+                txvTime_User.setText(String.valueOf(new SimpleDateFormat("hh:mm a", Locale.ENGLISH).format(chatMessage.getTime())));
+            }
 
         }
     }

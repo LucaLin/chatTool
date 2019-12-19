@@ -2,16 +2,19 @@ package com.example.r30_a.chattool;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -21,6 +24,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -65,12 +69,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setTitle("佛艾貝克斯聊天室");
 
-        setUUID();
+        setUUID();//取得裝置uuid
 
         findViewAndGetInstance();
 
-        checkIfLogin();
+        checkIfLogin();//檢查是否已登入
 
         //訊息框
         edtInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -101,20 +106,24 @@ public class MainActivity extends AppCompatActivity {
         reference.addChildEventListener(new ChildEventListener() {
             @Override//收到新訊息時自動往下捲
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-               recyclerView.scrollToPosition(adapter.getItemCount()-1);
+                recyclerView.scrollToPosition(adapter.getItemCount() - 1);
             }
 
             @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+            }
 
             @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {}
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+            }
 
             @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+            }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {}
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+            }
         });
     }
 
@@ -192,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
-                            Toast.makeText(MainActivity.this, "sighOut", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this, "已登出囉！", Toast.LENGTH_SHORT).show();
                             finish();
                         }
                     });
@@ -200,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-
+    //秀出訊息
     private void displayChatMsg() {
 
         try {
@@ -221,7 +230,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             };
 
-
             recyclerView.setLayoutManager(linearLayoutManager);
             recyclerView.setHasFixedSize(true);
             recyclerView.setAdapter(adapter);
@@ -231,6 +239,24 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+    }
+
+    public void showInfo(View view) {
+        AlertDialog builder = new AlertDialog.Builder(this).create();
+        builder.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View dialogView = inflater.inflate(R.layout.dialog_avatar_info,null);
+//        LinearLayout.LayoutParams pm = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+//        LinearLayout linearLayout = new LinearLayout(this);
+//        linearLayout.setGravity(Gravity.CENTER_HORIZONTAL);
+//        linearLayout.addView(dialogView,pm);
+
+        builder.setView(dialogView);
+//        builder.create();
+
+        builder.show();
 
     }
 
@@ -248,6 +274,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    //處理訊息的地方
     public class ChatMessageHolder extends RecyclerView.ViewHolder {
         private TextView txvUser_Other;
         private TextView txvMsg_Other;

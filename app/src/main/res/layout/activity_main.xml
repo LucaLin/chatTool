@@ -33,6 +33,7 @@
             android:layout_height="wrap_content"
             android:imeOptions="actionDone"
             android:singleLine="true"
+            android:focusable="false"
             android:hint="input" />
 
     </android.support.design.widget.TextInputLayout>

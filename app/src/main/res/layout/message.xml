@@ -37,21 +37,14 @@
                 android:textSize="16sp"
                 android:textColor="#FFFFFF"/>
 
-            <TextView
-                android:id="@+id/textView3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_toLeftOf="@id/txv_msg_user"
-                android:layout_alignBottom="@id/txv_msg_user"
-                android:gravity="right"
-                android:text="送出" />
+
 
             <TextView
                 android:id="@+id/txv_time_user"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignBottom="@id/txv_msg_user"
-                android:layout_toLeftOf="@id/textView3" />
+                android:layout_toLeftOf="@id/txv_msg_user" />
 
 
         </RelativeLayout>
@@ -70,6 +63,7 @@
                     android:id="@+id/img_avatar"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
+                    android:onClick="showInfo"
                     android:src="@mipmap/iconfinder_man_196742" />
 
                 <TextView
@@ -113,12 +107,7 @@
                         android:layout_marginLeft="5dp"
                         android:gravity="right" />
 
-                    <TextView
-                        android:id="@+id/textView2"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="right"
-                        android:text="送出" />
+
                 </LinearLayout>
 
 

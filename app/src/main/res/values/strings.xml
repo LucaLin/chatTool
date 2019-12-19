@@ -4,4 +4,6 @@
     <string name="loginFail">登入失敗，請稍候再試</string>
 
     <string name="welcome">歡迎回來： </string>
+
+    <string name="logOut">登出</string>
 </resources>

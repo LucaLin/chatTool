@@ -4,8 +4,9 @@
 
     <item
         android:id="@+id/menu_sign_out"
-        android:title="singOut"
-        app:showAsAction="never"/>
+        android:title="@string/logOut"
+        app:showAsAction="always"
+        android:icon="@mipmap/logout"/>
 
 
 </menu>

@@ -11,10 +11,10 @@ public class ChatMessage {
     private long time;//發送時間
     private String uuid;
 
-    public ChatMessage(String userName, String message, String uuid) {
+    public ChatMessage(String userName, String message,long time, String uuid) {
         this.userName = userName;
         this.message = message;
-        time = Long.getLong(new SimpleDateFormat("hh:mm a", Locale.ENGLISH).format(new Date()));
+        this.time = time;
         this.uuid = uuid;
     }
 

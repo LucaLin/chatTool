@@ -92,9 +92,9 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     String msg = edtInput.getText().toString();
                     String userName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
-                    String time = new SimpleDateFormat("hh:mm a", Locale.ENGLISH).format(new Date());
+                    long time = new Date().getTime();
                     reference.push()
-                            .setValue(new ChatMessage(userName, msg, uuid));
+                            .setValue(new ChatMessage(userName, msg, time,  uuid));
 
                     edtInput.setText("");
                     imm.hideSoftInputFromWindow(v.getWindowToken(), 0);//送出後鍵盤收起
@@ -214,7 +214,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void setValues(ChatMessage chatMessage) {
-            if (chatMessage.getUuid() != uuid) {
+            if (!chatMessage.getUuid().equals(uuid)) {
 
                 otherUserLayout.setVisibility(View.VISIBLE);
                 userLayout.setVisibility(View.GONE);

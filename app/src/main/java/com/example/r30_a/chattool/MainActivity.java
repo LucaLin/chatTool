@@ -21,6 +21,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
@@ -70,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        setTitle("佛艾貝克斯聊天室");
+        setTitle("發哀儿貝斯聊天室");
 
         setUUID();//取得裝置uuid
 
@@ -103,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         edtInput = (EditText) findViewById(R.id.edtInput);
+        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
         reference.addChildEventListener(new ChildEventListener() {
             @Override//收到新訊息時自動往下捲
@@ -227,7 +229,6 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 protected void populateViewHolder(ChatMessageHolder viewHolder, ChatMessage model, final int position) {
                     viewHolder.setValues(model);
-//                    showInfo(position);
                     viewHolder.img_avatar.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {

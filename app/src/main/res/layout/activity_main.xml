@@ -5,7 +5,6 @@
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-
     tools:context=".MainActivity">
 
     <android.support.design.widget.FloatingActionButton
@@ -33,7 +32,6 @@
             android:layout_height="wrap_content"
             android:imeOptions="actionDone"
             android:singleLine="true"
-            android:focusable="false"
             android:hint="input" />
 
     </android.support.design.widget.TextInputLayout>

@@ -24,6 +24,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -224,8 +225,15 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 @Override
-                protected void populateViewHolder(ChatMessageHolder viewHolder, ChatMessage model, int position) {
+                protected void populateViewHolder(ChatMessageHolder viewHolder, ChatMessage model, final int position) {
                     viewHolder.setValues(model);
+//                    showInfo(position);
+                    viewHolder.img_avatar.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            showInfo(position);
+                        }
+                    });
 
                 }
             };
@@ -242,12 +250,15 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void showInfo(View view) {
+    public void showInfo(int position) {
         AlertDialog builder = new AlertDialog.Builder(this).create();
         builder.getWindow().setBackgroundDrawable(new ColorDrawable(0));
 
         LayoutInflater inflater = LayoutInflater.from(this);
         View dialogView = inflater.inflate(R.layout.dialog_avatar_info,null);
+        TextView txvName = dialogView.findViewById(R.id.txv_dialog_name);
+        ChatMessage data = adapter.getItem(position);
+        txvName.setText(data.getUserName());
 //        LinearLayout.LayoutParams pm = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 //        LinearLayout linearLayout = new LinearLayout(this);
 //        linearLayout.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -276,13 +287,15 @@ public class MainActivity extends AppCompatActivity {
 
 
     //處理訊息的地方
-    public class ChatMessageHolder extends RecyclerView.ViewHolder {
+    public class ChatMessageHolder extends RecyclerView.ViewHolder  {
         private TextView txvUser_Other;
         private TextView txvMsg_Other;
         private TextView txvTime_Other;
 
         private TextView txvMsg_User;
         private TextView txvTime_User;
+
+        private ImageView img_avatar;
 
         RelativeLayout userLayout, otherUserLayout;
 
@@ -297,6 +310,8 @@ public class MainActivity extends AppCompatActivity {
 
             userLayout = (RelativeLayout) v.findViewById(R.id.userLayout);
             otherUserLayout = (RelativeLayout) v.findViewById(R.id.otherUserLayout);
+            img_avatar = (ImageView)v.findViewById(R.id.img_avatar);
+
         }
 
         public void setValues(ChatMessage chatMessage) {
@@ -308,6 +323,8 @@ public class MainActivity extends AppCompatActivity {
                 txvUser_Other.setText(chatMessage.getUserName());
                 txvMsg_Other.setText(chatMessage.getMessage());
                 txvTime_Other.setText(String.valueOf(new SimpleDateFormat("hh:mm a", Locale.ENGLISH).format(chatMessage.getTime())));
+
+
             } else {
                 userLayout.setVisibility(View.VISIBLE);
                 otherUserLayout.setVisibility(View.GONE);

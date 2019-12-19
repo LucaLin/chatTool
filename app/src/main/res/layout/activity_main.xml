@@ -17,6 +17,7 @@
         android:clickable="true"
         android:src="@drawable/icons_send24"
         android:tint="@android:color/white"
+        android:onClick="fabClick"
         app:fabSize="mini" />
 
     <android.support.design.widget.TextInputLayout
@@ -30,6 +31,8 @@
             android:id="@+id/edtInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:imeOptions="actionDone"
+            android:singleLine="true"
             android:hint="input" />
 
     </android.support.design.widget.TextInputLayout>
@@ -38,6 +41,7 @@
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:overScrollMode="never"
         android:layout_above="@id/fab"
         android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"

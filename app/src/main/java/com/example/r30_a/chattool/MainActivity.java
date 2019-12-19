@@ -11,11 +11,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -30,6 +33,9 @@ import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -42,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static final int SIGN_IN_REQUEST = 1;
 
-    private FloatingActionButton fabButton;
+
     private EditText edtInput;
 
     //    private FirebaseListAdapter<ChatMessage> adapter;
@@ -60,20 +66,68 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        setUUID();
+
+        findViewAndGetInstance();
+
+        checkIfLogin();
+
+        //訊息框
+        edtInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    if (!TextUtils.isEmpty(edtInput.getText())) {
+                        sendMsg();
+                        recyclerView.scrollToPosition(adapter.getItemCount() - 1);
+                        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);//送出後鍵盤收起
+                    }
+                }
+                return true;
+            }
+        });
+
+
+    }
+
+    private void findViewAndGetInstance() {
+        reference = FirebaseDatabase.getInstance().getReference();
+        recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        linearLayoutManager = new LinearLayoutManager(this);
+        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        edtInput = (EditText) findViewById(R.id.edtInput);
+
+        reference.addChildEventListener(new ChildEventListener() {
+            @Override//收到新訊息時自動往下捲
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+               recyclerView.scrollToPosition(adapter.getItemCount()-1);
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {}
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {}
+        });
+    }
+
+    private void setUUID() {
         if (Build.VERSION.SDK_INT < 28) {
             uuid = Build.SERIAL;
         } else {
             uuid = Settings.System.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
         }
+    }
 
-        reference = FirebaseDatabase.getInstance().getReference();
-
-        recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-        linearLayoutManager = new LinearLayoutManager(this);
-        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-
-        imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        //檢查是否已登入，若沒登入會導頁至登入畫面
+    //檢查是否已登入，若沒登入會導頁至登入畫面
+    private void checkIfLogin() {
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
             startActivityForResult(AuthUI.getInstance().createSignInIntentBuilder().build(), SIGN_IN_REQUEST);
 
@@ -81,29 +135,31 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, getResources().getText(R.string.welcome) + FirebaseAuth.getInstance().getCurrentUser().getDisplayName(), Toast.LENGTH_SHORT).show();
             displayChatMsg();
         }
+    }
 
-        //發送訊息
-        fabButton = (FloatingActionButton) findViewById(R.id.fab);
-        edtInput = (EditText) findViewById(R.id.edtInput);
-        fabButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //客製訊息model並推送出去
-                try {
-                    String msg = edtInput.getText().toString();
-                    String userName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
-                    long time = new Date().getTime();
-                    reference.push()
-                            .setValue(new ChatMessage(userName, msg, time,  uuid));
-
-                    edtInput.setText("");
-                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);//送出後鍵盤收起
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
+    //送出訊息
+    public void fabClick(View v) {
+        try {
+            if (!TextUtils.isEmpty(edtInput.getText())) {
+                sendMsg();
+                recyclerView.scrollToPosition(adapter.getItemCount() - 1);
+                imm.hideSoftInputFromWindow(v.getWindowToken(), 0);//送出後鍵盤收起
             }
-        });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sendMsg() {
+        String msg = edtInput.getText().toString();
+        String userName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+        long time = new Date().getTime();
+        reference.push()
+                .setValue(new ChatMessage(userName, msg, time, uuid));
+
+        edtInput.setText("");
+
+
     }
 
     @Override
@@ -167,7 +223,9 @@ public class MainActivity extends AppCompatActivity {
 
 
             recyclerView.setLayoutManager(linearLayoutManager);
+            recyclerView.setHasFixedSize(true);
             recyclerView.setAdapter(adapter);
+            recyclerView.scrollToPosition(adapter.getItemCount() - 1);
 
 
         } catch (Exception e) {
@@ -206,11 +264,11 @@ public class MainActivity extends AppCompatActivity {
             txvMsg_Other = (TextView) v.findViewById(R.id.txv_msg_other);
             txvTime_Other = (TextView) v.findViewById(R.id.txv_time_other);
 
-            txvMsg_User = (TextView)v.findViewById(R.id.txv_msg_user);
-            txvTime_User = (TextView)v.findViewById(R.id.txv_time_user);
+            txvMsg_User = (TextView) v.findViewById(R.id.txv_msg_user);
+            txvTime_User = (TextView) v.findViewById(R.id.txv_time_user);
 
-            userLayout = (RelativeLayout)v.findViewById(R.id.userLayout);
-            otherUserLayout = (RelativeLayout)v.findViewById(R.id.otherUserLayout);
+            userLayout = (RelativeLayout) v.findViewById(R.id.userLayout);
+            otherUserLayout = (RelativeLayout) v.findViewById(R.id.otherUserLayout);
         }
 
         public void setValues(ChatMessage chatMessage) {
@@ -222,7 +280,7 @@ public class MainActivity extends AppCompatActivity {
                 txvUser_Other.setText(chatMessage.getUserName());
                 txvMsg_Other.setText(chatMessage.getMessage());
                 txvTime_Other.setText(String.valueOf(new SimpleDateFormat("hh:mm a", Locale.ENGLISH).format(chatMessage.getTime())));
-            }else {
+            } else {
                 userLayout.setVisibility(View.VISIBLE);
                 otherUserLayout.setVisibility(View.GONE);
 

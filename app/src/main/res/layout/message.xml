@@ -33,10 +33,17 @@
                 android:paddingEnd="33dp"
                 android:paddingBottom="14dp"
                 android:layout_marginRight="6dp"
-                android:text="128"
+                android:text="message"
                 android:textSize="16sp"
                 android:textColor="#FFFFFF"/>
 
+            <ImageView
+                android:id="@+id/imgmsg_user"
+                android:layout_width="100dp"
+                android:layout_height="200dp"
+                android:layout_toLeftOf="@id/img_avatar_user"
+                android:layout_marginRight="6dp"
+                />
 
 
             <TextView
@@ -44,7 +51,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignBottom="@id/txv_msg_user"
-                android:layout_toLeftOf="@id/txv_msg_user" />
+                android:layout_toLeftOf="@id/txv_msg_user"/>
+
+            <TextView
+                android:id="@+id/txv_time_imgUSer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/imgmsg_user"
+                android:layout_toLeftOf="@id/imgmsg_user"
+                />
+
 
 
         </RelativeLayout>
@@ -89,9 +105,19 @@
                     android:gravity="center"
                     android:paddingLeft="18dp"
                     android:paddingRight="10dp"
-                    android:text="messagemessagemessage"
+                    android:text="message"
                     android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                     android:textSize="16sp" />
+
+                <ImageView
+                    android:id="@+id/imgmsg_otheruser"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="6dp"
+                    android:layout_toRightOf="@id/img_avatar"
+                    android:layout_below="@id/txv_user_other"
+                    android:layout_marginTop="6dp"
+                    android:visibility="gone"/>
 
                 <LinearLayout
                     android:layout_width="wrap_content"

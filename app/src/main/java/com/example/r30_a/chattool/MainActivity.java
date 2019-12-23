@@ -476,6 +476,7 @@ public class MainActivity extends AppCompatActivity {
 
         private TextView txvMsg_User;
         private TextView txvTime_User;
+        private TextView txv_time_imgOther;
         private ImageView img_avatar;
 
         private TextView txv_time_imgUSer;
@@ -500,6 +501,7 @@ public class MainActivity extends AppCompatActivity {
             imgMsg_other = (ImageView) v.findViewById(R.id.imgmsg_otheruser);
 
             txv_time_imgUSer = (TextView) v.findViewById(R.id.txv_time_imgUSer);
+            txv_time_imgOther = (TextView)v.findViewById(R.id.txv_time_imgOther);
 
         }
 
@@ -511,9 +513,13 @@ public class MainActivity extends AppCompatActivity {
                         txvMsg_Other.setVisibility(View.VISIBLE);
                         txvMsg_Other.setText(chatMessage.getMessage());
                         imgMsg_other.setVisibility(View.GONE);
+                        txv_time_imgOther.setVisibility(View.GONE);
+                        txvTime_Other.setText(sendTime);
                     } else {
                         txvMsg_Other.setVisibility(View.GONE);
                         imgMsg_other.setVisibility(View.VISIBLE);
+                        txvTime_Other.setVisibility(View.GONE);
+                        txv_time_imgOther.setVisibility(View.VISIBLE);
 
                         storageReference = FirebaseStorage.getInstance().getReference();
                         storageReference = storageReference.child(chatMessage.getFilePath());
@@ -532,13 +538,14 @@ public class MainActivity extends AppCompatActivity {
                                 e.printStackTrace();
                             }
                         });
-
+                        txv_time_imgOther.setText(sendTime);
                     }
 
                     otherUserLayout.setVisibility(View.VISIBLE);
                     userLayout.setVisibility(View.GONE);
                     txvUser_Other.setText(chatMessage.getUserName());
-                    txvTime_Other.setText(sendTime);
+
+
 
                 } else {
                     if (TextUtils.isEmpty(chatMessage.getFilePath())) {//如果有圖片訊息就秀圖

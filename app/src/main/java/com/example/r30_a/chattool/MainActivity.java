@@ -452,6 +452,9 @@ public class MainActivity extends AppCompatActivity {
         options.inJustDecodeBounds = false;
         Bitmap bitmap = BitmapFactory.decodeFile(cameraPath, options);
 
+        int degree = Utils.getInstance().getRotationDegree(cameraPath);
+        bitmap = Utils.getInstance().rotateBitmap(bitmap,degree);
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
         byte[] bitmapdata = baos.toByteArray();
@@ -463,6 +466,8 @@ public class MainActivity extends AppCompatActivity {
         fos.write(bitmapdata);
         fos.flush();
         fos.close();
+
+
 
         return uploadFile;
     }

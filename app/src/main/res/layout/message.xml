@@ -52,6 +52,7 @@
                 android:id="@+id/txv_time_user"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginRight="6dp"
                 android:layout_alignBottom="@id/txv_msg_user"
                 android:layout_toLeftOf="@id/txv_msg_user"/>
 
@@ -59,6 +60,7 @@
                 android:id="@+id/txv_time_imgUSer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginRight="6dp"
                 android:layout_alignBottom="@id/imgmsg_user"
                 android:layout_toLeftOf="@id/imgmsg_user"
                 />
@@ -127,12 +129,14 @@
                     android:id="@+id/txv_time_imgOther"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="6dp"
                     android:layout_toRightOf="@id/imgmsg_otheruser"
                     android:layout_alignBottom="@id/imgmsg_otheruser"/>
 
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="6dp"
                     android:layout_alignBottom="@id/txv_msg_other"
                     android:layout_toRightOf="@id/txv_msg_other"
                     android:orientation="horizontal">

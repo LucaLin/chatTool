@@ -344,12 +344,19 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 protected void populateViewHolder(ChatMessageHolder viewHolder, ChatMessage model, final int position) {
                     viewHolder.setValues(model);
-                    viewHolder.img_avatar.setOnClickListener(new View.OnClickListener() {
+                    viewHolder.img_avatar_other.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             showInfo(position);
                         }
                     });
+                    viewHolder.img_avatar_user.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            showInfo(position);
+                        }
+                    });
+
 
                 }
             };
@@ -494,7 +501,7 @@ public class MainActivity extends AppCompatActivity {
         private TextView txvMsg_User;
         private TextView txvTime_User;
         private TextView txv_time_imgOther;
-        private ImageView img_avatar;
+        private ImageView img_avatar_other, img_avatar_user;
 
         private TextView txv_time_imgUSer;
         RelativeLayout userLayout, otherUserLayout;
@@ -513,7 +520,8 @@ public class MainActivity extends AppCompatActivity {
 
             userLayout = (RelativeLayout) v.findViewById(R.id.userLayout);
             otherUserLayout = (RelativeLayout) v.findViewById(R.id.otherUserLayout);
-            img_avatar = (ImageView) v.findViewById(R.id.img_avatar);
+            img_avatar_other = (ImageView) v.findViewById(R.id.img_avatar_other);
+            img_avatar_user = (ImageView)v.findViewById(R.id.img_avatar_user);
 
             imgMsg_user = (ImageView) v.findViewById(R.id.imgmsg_user);
             imgMsg_other = (ImageView) v.findViewById(R.id.imgmsg_otheruser);
@@ -589,7 +597,7 @@ public class MainActivity extends AppCompatActivity {
                         txvTime_User.setText(sendTime);
 
                     } else {
-                        
+
                         txvMsg_User.setVisibility(View.GONE);
                         imgMsg_user.setVisibility(View.VISIBLE);
 

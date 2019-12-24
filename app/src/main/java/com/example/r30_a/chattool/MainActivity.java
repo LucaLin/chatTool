@@ -87,22 +87,19 @@ public class MainActivity extends AppCompatActivity {
 
     private EditText edtInput;
 
-    //    private FirebaseListAdapter<ChatMessage> adapter;
     private FirebaseRecyclerAdapter<ChatMessage, ChatMessageHolder> adapter;
-    private ListView listView;
     private RecyclerView recyclerView;
     private LinearLayoutManager linearLayoutManager;
 
     private DatabaseReference reference;
     private StorageReference storageReference;
     private InputMethodManager imm;
-    String uuid;
+    private String uuid;
 
     private Uri camera_uri;
     private File cameraFile;
     private String cameraFileName;
     private String cameraPath;
-    public Bitmap cameraBitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -281,7 +278,6 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-
     //設置登出動作
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -319,24 +315,17 @@ public class MainActivity extends AppCompatActivity {
     private void displayChatMsg() {
 
         try {
-
-
             adapter = new FirebaseRecyclerAdapter<ChatMessage, ChatMessageHolder>
                     (ChatMessage.class, R.layout.message, ChatMessageHolder.class, reference.limitToLast(10)) {
 
-
                 public ChatMessageHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-
                     View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.message, parent, false);
-
                     ChatMessageHolder holder = new ChatMessageHolder(view);
                     return holder;
                 }
 
                 @Override
                 protected void populateViewHolder(ChatMessageHolder viewHolder, ChatMessage model, final int position) {
-
-
                     viewHolder.setValues(model);
                     viewHolder.img_avatar.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -370,9 +359,7 @@ public class MainActivity extends AppCompatActivity {
         ChatMessage data = adapter.getItem(position);
         txvName.setText(data.getUserName());
 
-
         builder.setView(dialogView);
-//        builder.create();
 
         builder.show();
 
@@ -392,9 +379,9 @@ public class MainActivity extends AppCompatActivity {
         } else if (requestCode == CAMERA_REQUEST) {//獲取拍照結果
             if (resultCode == RESULT_OK) {
                 try {
-                    //壓縮圖片
                     //https://www.itread01.com/content/1547700324.html
                     //https://givemepass.blogspot.com/2017/03/firebase-storage.html
+
                     storageReference = FirebaseStorage.getInstance().getReference();
                     final Uri uri = Uri.fromFile(compressUploadPhoto());
                     StorageMetadata metadata = new StorageMetadata.Builder()
@@ -411,19 +398,9 @@ public class MainActivity extends AppCompatActivity {
                             //成功時通知聊天室??
                             String userName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
                             long time = new Date().getTime();
-//                            List<StorageReference> list = new ArrayList<>();
-//                            list.add(storageReference);
-                            reference = FirebaseDatabase.getInstance().getReference();
                             reference.push()
                                     .setValue(new ChatMessage(userName, time, uuid, filePath));
 
-
-//                            storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-//                                @Override
-//                                public void onSuccess(Uri uri) {
-//                                    int i = 0;
-//                                }
-//                            });
                         }
                     }).addOnFailureListener(new OnFailureListener() {
                         @Override
@@ -431,7 +408,6 @@ public class MainActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
                     });
-//                    }
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -443,6 +419,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //壓縮來源圖片
     private File compressUploadPhoto() throws IOException {
 
         BitmapFactory.Options options = new BitmapFactory.Options();
@@ -453,7 +430,7 @@ public class MainActivity extends AppCompatActivity {
         Bitmap bitmap = BitmapFactory.decodeFile(cameraPath, options);
 
         int degree = Utils.getInstance().getRotationDegree(cameraPath);
-        bitmap = Utils.getInstance().rotateBitmap(bitmap,degree);
+        bitmap = Utils.getInstance().rotateBitmap(bitmap, degree);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
@@ -466,8 +443,6 @@ public class MainActivity extends AppCompatActivity {
         fos.write(bitmapdata);
         fos.flush();
         fos.close();
-
-
 
         return uploadFile;
     }
@@ -506,28 +481,36 @@ public class MainActivity extends AppCompatActivity {
             imgMsg_other = (ImageView) v.findViewById(R.id.imgmsg_otheruser);
 
             txv_time_imgUSer = (TextView) v.findViewById(R.id.txv_time_imgUSer);
-            txv_time_imgOther = (TextView)v.findViewById(R.id.txv_time_imgOther);
+            txv_time_imgOther = (TextView) v.findViewById(R.id.txv_time_imgOther);
 
         }
 
         public void setValues(ChatMessage chatMessage) {
             if (chatMessage != null) {
+
                 String sendTime = String.valueOf(new SimpleDateFormat("hh:mm a", Locale.ENGLISH).format(chatMessage.getTime()));
+                otherUserLayout.setVisibility(View.VISIBLE);
+                userLayout.setVisibility(View.GONE);
+                txvUser_Other.setText(chatMessage.getUserName());
+
                 if (!chatMessage.getUuid().equals(uuid)) {//使用裝置id讓判斷訊息來自使用者或對方
                     if (TextUtils.isEmpty(chatMessage.getFilePath())) {//如果有圖片訊息就秀圖
                         txvMsg_Other.setVisibility(View.VISIBLE);
-                        txvMsg_Other.setText(chatMessage.getMessage());
                         imgMsg_other.setVisibility(View.GONE);
                         txv_time_imgOther.setVisibility(View.GONE);
+
+                        txvMsg_Other.setText(chatMessage.getMessage());
                         txvTime_Other.setText(sendTime);
                     } else {
                         txvMsg_Other.setVisibility(View.GONE);
                         imgMsg_other.setVisibility(View.VISIBLE);
+
                         txvTime_Other.setVisibility(View.GONE);
                         txv_time_imgOther.setVisibility(View.VISIBLE);
 
                         storageReference = FirebaseStorage.getInstance().getReference();
                         storageReference = storageReference.child(chatMessage.getFilePath());
+                        //讀取圖片
                         storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                             @Override
                             public void onSuccess(Uri uri) {
@@ -541,15 +524,11 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onFailure(@NonNull Exception e) {
                                 e.printStackTrace();
+                                Toast.makeText(MainActivity.this, "請重新讀取", Toast.LENGTH_LONG).show();
                             }
                         });
                         txv_time_imgOther.setText(sendTime);
                     }
-
-                    otherUserLayout.setVisibility(View.VISIBLE);
-                    userLayout.setVisibility(View.GONE);
-                    txvUser_Other.setText(chatMessage.getUserName());
-
 
 
                 } else {
@@ -563,6 +542,8 @@ public class MainActivity extends AppCompatActivity {
                         txvTime_User.setText(sendTime);
 
                     } else {
+                        userLayout.setVisibility(View.VISIBLE);
+                        otherUserLayout.setVisibility(View.GONE);
 
                         txvMsg_User.setVisibility(View.GONE);
                         imgMsg_user.setVisibility(View.VISIBLE);
@@ -589,14 +570,11 @@ public class MainActivity extends AppCompatActivity {
                         txvTime_User.setVisibility(View.GONE);
                         txv_time_imgUSer.setText(sendTime);
                     }
-                    userLayout.setVisibility(View.VISIBLE);
-                    otherUserLayout.setVisibility(View.GONE);
 
                 }
 
             }
         }
     }
-
-
+    
 }

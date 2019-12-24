@@ -427,6 +427,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //上傳圖片訊息至firebase雲端
     private void uploadFile(Uri uri, final String fileName) {
 
         storageReference = FirebaseStorage.getInstance().getReference();
@@ -525,11 +526,11 @@ public class MainActivity extends AppCompatActivity {
         public void setValues(final ChatMessage chatMessage) {
             if (chatMessage != null) {
                 String sendTime = String.valueOf(new SimpleDateFormat("hh:mm a", Locale.ENGLISH).format(chatMessage.getTime()));
-                otherUserLayout.setVisibility(View.VISIBLE);
-                userLayout.setVisibility(View.GONE);
-                txvUser_Other.setText(chatMessage.getUserName());
 
                 if (!chatMessage.getUuid().equals(uuid)) {//使用裝置id讓判斷訊息來自使用者或對方
+                    otherUserLayout.setVisibility(View.VISIBLE);
+                    userLayout.setVisibility(View.GONE);
+
                     if (TextUtils.isEmpty(chatMessage.getFilePath())) {//如果有圖片訊息就秀圖
                         txvMsg_Other.setVisibility(View.VISIBLE);
                         imgMsg_other.setVisibility(View.GONE);
@@ -572,8 +573,12 @@ public class MainActivity extends AppCompatActivity {
                         });
                     }
 
+                    txvUser_Other.setText(chatMessage.getUserName());
 
                 } else {
+                    userLayout.setVisibility(View.VISIBLE);
+                    otherUserLayout.setVisibility(View.GONE);
+
                     if (TextUtils.isEmpty(chatMessage.getFilePath())) {//如果有圖片訊息就秀圖
                         txvMsg_User.setVisibility(View.VISIBLE);
                         txvMsg_User.setText(chatMessage.getMessage());
@@ -584,9 +589,7 @@ public class MainActivity extends AppCompatActivity {
                         txvTime_User.setText(sendTime);
 
                     } else {
-                        userLayout.setVisibility(View.VISIBLE);
-                        otherUserLayout.setVisibility(View.GONE);
-
+                        
                         txvMsg_User.setVisibility(View.GONE);
                         imgMsg_user.setVisibility(View.VISIBLE);
 

@@ -1,6 +1,7 @@
 package com.example.r30_a.chattool;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -30,6 +31,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -464,6 +466,7 @@ public class MainActivity extends AppCompatActivity {
 
         ImageView imgMsg_user, imgMsg_other;
 
+
         public ChatMessageHolder(@NonNull View v) {
             super(v);
             txvUser_Other = (TextView) v.findViewById(R.id.txv_user_other);
@@ -485,9 +488,8 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-        public void setValues(ChatMessage chatMessage) {
+        public void setValues(final ChatMessage chatMessage) {
             if (chatMessage != null) {
-
                 String sendTime = String.valueOf(new SimpleDateFormat("hh:mm a", Locale.ENGLISH).format(chatMessage.getTime()));
                 otherUserLayout.setVisibility(View.VISIBLE);
                 userLayout.setVisibility(View.GONE);
@@ -528,6 +530,12 @@ public class MainActivity extends AppCompatActivity {
                             }
                         });
                         txv_time_imgOther.setText(sendTime);
+                        imgMsg_other.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                showPhoto(chatMessage);
+                            }
+                        });
                     }
 
 
@@ -569,12 +577,39 @@ public class MainActivity extends AppCompatActivity {
                         txv_time_imgUSer.setVisibility(View.VISIBLE);
                         txvTime_User.setVisibility(View.GONE);
                         txv_time_imgUSer.setText(sendTime);
+
+                        imgMsg_user.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                showPhoto(chatMessage);
+                            }
+                        });
                     }
 
                 }
 
             }
+
+        }
+
+        public void showPhoto(ChatMessage chatMessage) {
+            Dialog dialog = new Dialog(MainActivity.this, R.style.edit_AlertDialog_style);
+            dialog.setContentView(R.layout.dialog_photo);
+            final ImageView img_photo = dialog.findViewById(R.id.img_dialog_photo);
+            storageReference = FirebaseStorage.getInstance().getReference();
+            storageReference = storageReference.child(chatMessage.getFilePath());
+            storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                @Override
+                public void onSuccess(Uri uri) {
+                    Glide.with(MainActivity.this)
+                            .load(uri)
+                            .into(img_photo);
+                }
+            });
+
+            dialog.setCanceledOnTouchOutside(true);
+            dialog.show();
         }
     }
-    
+
 }

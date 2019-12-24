@@ -352,18 +352,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void showInfo(int position) {
-        AlertDialog builder = new AlertDialog.Builder(this).create();
-        builder.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+        Dialog dialog = new Dialog(MainActivity.this,R.style.edit_AlertDialog_style);
+        dialog.setContentView(R.layout.dialog_avatar_info);
+        dialog.setCanceledOnTouchOutside(true);
 
-        LayoutInflater inflater = LayoutInflater.from(this);
-        View dialogView = inflater.inflate(R.layout.dialog_avatar_info, null);
-        TextView txvName = dialogView.findViewById(R.id.txv_dialog_name);
+        ImageView img_avatar = dialog.findViewById(R.id.img_info_avatar);
+        TextView txv_name = dialog.findViewById(R.id.txv_dialog_name);
+
         ChatMessage data = adapter.getItem(position);
-        txvName.setText(data.getUserName());
+        txv_name.setText(data.getUserName());
 
-        builder.setView(dialogView);
-
-        builder.show();
+        dialog.show();
 
     }
 

@@ -33,12 +33,25 @@
         android:onClick="fabTakePhoto"
         app:fabSize="mini" />
 
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabAlbum"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="4dp"
+        android:layout_toLeftOf="@id/fabCamera"
+        android:layout_alignParentBottom="true"
+        android:clickable="true"
+        android:src="@drawable/albums"
+        android:tint="@android:color/white"
+        android:onClick="fabAlbum"
+        app:fabSize="mini" />
+
     <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true"
-        android:layout_toLeftOf="@id/fabCamera">
+        android:layout_toLeftOf="@id/fabAlbum">
 
         <EditText
             android:id="@+id/edtInput"

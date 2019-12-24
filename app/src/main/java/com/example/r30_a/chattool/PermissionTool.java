@@ -23,6 +23,16 @@ public class PermissionTool {
         return instance;
     }
 
+    public boolean isReadExternalStorageGranted(AppCompatActivity activity) {
+        return ContextCompat.checkSelfPermission(activity,
+                Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    public void requestReadExternalStoragePermission(AppCompatActivity activity) {
+        ActivityCompat.requestPermissions(activity,
+                new String[] { Manifest.permission.READ_EXTERNAL_STORAGE},
+                PERMISSION_REQUEST_EXTERNAL_STORAGE_WRITE);
+    }
 
     public boolean isWriteExternalStorageGranted(AppCompatActivity activity) {
         return ContextCompat.checkSelfPermission(activity,

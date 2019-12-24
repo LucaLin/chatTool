@@ -7,15 +7,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -23,22 +20,17 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.util.Base64;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -58,8 +50,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
@@ -69,13 +59,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 
@@ -107,6 +92,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
         setTitle("發哀儿貝斯聊天室");
 
         setUUID();//取得裝置uuid
@@ -237,7 +224,35 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+    public void fabAlbum(View v) {
+        if (checkAlbumPermission()) {
+
+            cameraFileName = Utils.getInstance().getFileName();
+            File dir = Utils.getInstance().getFireDir();
+            cameraFile = new File(dir, cameraFileName);
+            cameraPath = cameraFile.getPath();
+
+            Intent albumIntent = new Intent();
+            albumIntent.setType("image/*");//設定只顯示圖片區，不要秀其它的資料夾
+            albumIntent.setAction(Intent.ACTION_GET_CONTENT);//取得本機相簿的action
+            startActivityForResult(albumIntent, ALBUM_REQUEST);
+        } else {
+            PermissionTool.getInstance().requestReadExternalStoragePermission(this);
+        }
+    }
+
+
     private boolean checkPhotoPermission() {
+        if (PermissionTool.getInstance().isWriteExternalStorageGranted(this)
+                && PermissionTool.getInstance().isCameraGranted(this)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private boolean checkAlbumPermission() {
         if (PermissionTool.getInstance().isWriteExternalStorageGranted(this)
                 && PermissionTool.getInstance().isCameraGranted(this)) {
             return true;
@@ -352,7 +367,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void showInfo(int position) {
-        Dialog dialog = new Dialog(MainActivity.this,R.style.edit_AlertDialog_style);
+        Dialog dialog = new Dialog(MainActivity.this, R.style.edit_AlertDialog_style);
         dialog.setContentView(R.layout.dialog_avatar_info);
         dialog.setCanceledOnTouchOutside(true);
 
@@ -383,42 +398,61 @@ public class MainActivity extends AppCompatActivity {
                     //https://www.itread01.com/content/1547700324.html
                     //https://givemepass.blogspot.com/2017/03/firebase-storage.html
 
-                    storageReference = FirebaseStorage.getInstance().getReference();
                     final Uri uri = Uri.fromFile(compressUploadPhoto());
-                    StorageMetadata metadata = new StorageMetadata.Builder()
-                            .setContentType("image/jpg")
-                            .build();
-                    final String filePath = uri.getLastPathSegment();
-
-                    storageReference = storageReference.child(filePath);//要上傳到雲端的路徑
-                    //上傳圖片到filebase雲端
-                    UploadTask uploadTask = storageReference.putFile(uri, metadata);
-                    uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            //成功時通知聊天室??
-                            String userName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
-                            long time = new Date().getTime();
-                            reference.push()
-                                    .setValue(new ChatMessage(userName, time, uuid, filePath));
-
-                        }
-                    }).addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            e.printStackTrace();
-                        }
-                    });
+                    uploadFile(uri, uri.getLastPathSegment());
 
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             } else {
-
+                Toast.makeText(MainActivity.this, "請重試一次", Toast.LENGTH_LONG).show();
             }
 
+        } else if (requestCode == ALBUM_REQUEST) {
+            if (resultCode == RESULT_OK && data != null && data.getData() != null) {
+                try {
+
+                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
+                    File file = Utils.getInstance().bitmapToFile(getCacheDir(), cameraFileName, bitmap);
+
+                    uploadFile(Uri.fromFile(file), file.getName());
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            } else {
+                Toast.makeText(MainActivity.this, "請重試一次", Toast.LENGTH_LONG).show();
+            }
         }
     }
+
+    private void uploadFile(Uri uri, final String fileName) {
+
+        storageReference = FirebaseStorage.getInstance().getReference();
+        storageReference = storageReference.child(fileName);
+
+        StorageMetadata metadata = new StorageMetadata.Builder()
+                .setContentType("image/jpg")
+                .build();
+
+        UploadTask uploadTask = storageReference.putFile(uri, metadata);
+        uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                String userName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+                long time = new Date().getTime();
+                reference.push()
+                        .setValue(new ChatMessage(userName, time, uuid, fileName));
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
 
     //壓縮來源圖片
     private File compressUploadPhoto() throws IOException {
@@ -437,7 +471,8 @@ public class MainActivity extends AppCompatActivity {
         bitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
         byte[] bitmapdata = baos.toByteArray();
 
-        File uploadFile = new File(getCacheDir(), cameraFileName);
+        File tempFile = getCacheDir();
+        File uploadFile = new File(tempFile, cameraFileName);
         uploadFile.createNewFile();
 
         FileOutputStream fos = new FileOutputStream(uploadFile);

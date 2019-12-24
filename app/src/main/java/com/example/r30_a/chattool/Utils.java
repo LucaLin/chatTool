@@ -6,7 +6,10 @@ import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.os.Environment;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -106,5 +109,34 @@ public class Utils {
             inSampleSize = heightRatio < widthRatio ? heightRatio : widthRatio;
         }
         return inSampleSize;
+    }
+
+    // bitmap 壓縮並寫入檔案
+    public File bitmapToFile(File file, String cameraFileName,  Bitmap bitmap) {
+        File uploadFile = null;
+
+        Matrix matrix = new Matrix();
+        matrix.setScale(0.5f, 0.5f);
+        bitmap = Bitmap.createBitmap(bitmap,0,0,bitmap.getWidth(),bitmap.getHeight(),matrix,true);
+
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 80, os);
+        byte[] bitmapdata = os.toByteArray();
+
+        try {
+            uploadFile = new File(file, cameraFileName);
+
+            FileOutputStream fos = new FileOutputStream(uploadFile);
+            fos.write(bitmapdata);
+            fos.flush();
+            fos.close();
+
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return uploadFile;
     }
 }

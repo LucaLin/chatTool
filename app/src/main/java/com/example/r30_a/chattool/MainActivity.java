@@ -1,6 +1,8 @@
 package com.example.r30_a.chattool;
 
 import android.Manifest;
+import android.animation.Animator;
+import android.animation.AnimatorSet;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -28,6 +30,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
@@ -380,15 +385,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void showInfo(int position) {
-        Dialog dialog = new Dialog(MainActivity.this, R.style.edit_AlertDialog_style);
+        final Dialog dialog = new Dialog(MainActivity.this, R.style.edit_AlertDialog_style);
         dialog.setContentView(R.layout.dialog_avatar_info);
-        dialog.setCanceledOnTouchOutside(true);
+        dialog.setCanceledOnTouchOutside(false);
 
         ImageView img_avatar = dialog.findViewById(R.id.img_info_avatar);
+        ImageView img_close = dialog.findViewById(R.id.img_close);
         TextView txv_name = dialog.findViewById(R.id.txv_dialog_name);
 
         ChatMessage data = adapter.getItem(position);
         txv_name.setText(data.getUserName());
+
+        img_close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
 
         dialog.show();
 

@@ -20,6 +20,7 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -71,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
     private final int ALBUM_REQUEST = 5002;
     public static final int SIGN_IN_REQUEST = 1;
     private static final int REQUEST_CAMERA_AND_WRITE_STORAGE = 5000;
+    public static final String AUTHORITY = "com.example.r30_a.fileprovider";
 
     private EditText edtInput;
 
@@ -94,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
-        setTitle("發哀儿貝斯聊天室");
+        setTitle("聊天小工具");
 
         setUUID();//取得裝置uuid
 
@@ -124,11 +126,11 @@ public class MainActivity extends AppCompatActivity {
         reference = FirebaseDatabase.getInstance().getReference();
         storageReference = FirebaseStorage.getInstance().getReference();
 
-        recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        recyclerView = findViewById(R.id.recyclerView);
         linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        edtInput = (EditText) findViewById(R.id.edtInput);
+        edtInput = findViewById(R.id.edtInput);
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
         reference.addChildEventListener(new ChildEventListener() {
@@ -200,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
             cameraPath = cameraFile.getPath();
             if (Build.VERSION.SDK_INT >= 24) {
                 camera_uri = FileProvider.getUriForFile(getApplicationContext(),
-                        "com.example.r30_a.fileprovider", cameraFile);
+                        AUTHORITY, cameraFile);
             } else {
                 camera_uri = Uri.fromFile(cameraFile);
             }
@@ -208,7 +210,6 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);//使用拍照
             intent.putExtra(MediaStore.EXTRA_OUTPUT, camera_uri);
             startActivityForResult(intent, CAMERA_REQUEST);
-
 
         } else {
             // 要求權限
@@ -225,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void fabAlbum(View v) {
+    public void fabAlbum(View v) {//開啟相簿
         if (checkAlbumPermission()) {
 
             cameraFileName = Utils.getInstance().getFileName();
@@ -237,6 +238,8 @@ public class MainActivity extends AppCompatActivity {
             albumIntent.setType("image/*");//設定只顯示圖片區，不要秀其它的資料夾
             albumIntent.setAction(Intent.ACTION_GET_CONTENT);//取得本機相簿的action
             startActivityForResult(albumIntent, ALBUM_REQUEST);
+
+
         } else {
             PermissionTool.getInstance().requestReadExternalStoragePermission(this);
         }
@@ -270,6 +273,7 @@ public class MainActivity extends AppCompatActivity {
                 .setValue(new ChatMessage(userName, msg, time, uuid));
 
         edtInput.setText("");
+
 
 
     }
@@ -338,8 +342,10 @@ public class MainActivity extends AppCompatActivity {
                 public ChatMessageHolder onCreateViewHolder(ViewGroup parent, int viewType) {
                     View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.message, parent, false);
                     ChatMessageHolder holder = new ChatMessageHolder(view);
+
                     return holder;
                 }
+
 
                 @Override
                 protected void populateViewHolder(ChatMessageHolder viewHolder, ChatMessage model, final int position) {
@@ -404,8 +410,9 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     //https://www.itread01.com/content/1547700324.html
                     //https://givemepass.blogspot.com/2017/03/firebase-storage.html
+                    File tempFile = getCacheDir();
 
-                    final Uri uri = Uri.fromFile(compressUploadPhoto());
+                    final Uri uri = Uri.fromFile(Utils.getInstance().compressUploadPhoto(tempFile,cameraPath,cameraFileName));
                     uploadFile(uri, uri.getLastPathSegment());
 
                 } catch (IOException e) {
@@ -461,37 +468,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-
-    //壓縮來源圖片
-    private File compressUploadPhoto() throws IOException {
-
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-
-        options.inSampleSize = Utils.getInstance().calculateInSampleSize(options, 480, 800);//解析度
-        options.inJustDecodeBounds = false;
-        Bitmap bitmap = BitmapFactory.decodeFile(cameraPath, options);
-
-        int degree = Utils.getInstance().getRotationDegree(cameraPath);
-        bitmap = Utils.getInstance().rotateBitmap(bitmap, degree);
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
-        byte[] bitmapdata = baos.toByteArray();
-
-        File tempFile = getCacheDir();
-        File uploadFile = new File(tempFile, cameraFileName);
-        uploadFile.createNewFile();
-
-        FileOutputStream fos = new FileOutputStream(uploadFile);
-        fos.write(bitmapdata);
-        fos.flush();
-        fos.close();
-
-        return uploadFile;
-    }
-
-
     //處理訊息的地方
     public class ChatMessageHolder extends RecyclerView.ViewHolder {
         private TextView txvUser_Other;
@@ -511,40 +487,43 @@ public class MainActivity extends AppCompatActivity {
 
         public ChatMessageHolder(@NonNull View v) {
             super(v);
-            txvUser_Other = (TextView) v.findViewById(R.id.txv_user_other);
-            txvMsg_Other = (TextView) v.findViewById(R.id.txv_msg_other);
-            txvTime_Other = (TextView) v.findViewById(R.id.txv_time_other);
+            txvUser_Other = v.findViewById(R.id.txv_user_other);
+            txvMsg_Other = v.findViewById(R.id.txv_msg_other);
+            txvTime_Other = v.findViewById(R.id.txv_time_other);
 
-            txvMsg_User = (TextView) v.findViewById(R.id.txv_msg_user);
-            txvTime_User = (TextView) v.findViewById(R.id.txv_time_user);
+            txvMsg_User = v.findViewById(R.id.txv_msg_user);
+            txvTime_User = v.findViewById(R.id.txv_time_user);
 
-            userLayout = (RelativeLayout) v.findViewById(R.id.userLayout);
-            otherUserLayout = (RelativeLayout) v.findViewById(R.id.otherUserLayout);
-            img_avatar_other = (ImageView) v.findViewById(R.id.img_avatar_other);
-            img_avatar_user = (ImageView)v.findViewById(R.id.img_avatar_user);
+            userLayout = v.findViewById(R.id.userLayout);
+            otherUserLayout = v.findViewById(R.id.otherUserLayout);
+            img_avatar_other = v.findViewById(R.id.img_avatar_other);
+            img_avatar_user = v.findViewById(R.id.img_avatar_user);
 
-            imgMsg_user = (ImageView) v.findViewById(R.id.imgmsg_user);
-            imgMsg_other = (ImageView) v.findViewById(R.id.imgmsg_otheruser);
+            imgMsg_user = v.findViewById(R.id.imgmsg_user);
+            imgMsg_other = v.findViewById(R.id.imgmsg_otheruser);
 
-            txv_time_imgUSer = (TextView) v.findViewById(R.id.txv_time_imgUSer);
-            txv_time_imgOther = (TextView) v.findViewById(R.id.txv_time_imgOther);
+            txv_time_imgUSer = v.findViewById(R.id.txv_time_imgUSer);
+            txv_time_imgOther = v.findViewById(R.id.txv_time_imgOther);
 
         }
 
         public void setValues(final ChatMessage chatMessage) {
             if (chatMessage != null) {
-                String sendTime = String.valueOf(new SimpleDateFormat("hh:mm a", Locale.ENGLISH).format(chatMessage.getTime()));
+
+                String sendTime = new SimpleDateFormat("hh:mm a", Locale.ENGLISH).format(chatMessage.getTime());
+                String filePath = chatMessage.getFilePath();
+                String chatMsg = chatMessage.getMessage();
 
                 if (!chatMessage.getUuid().equals(uuid)) {//使用裝置id讓判斷訊息來自使用者或對方
                     otherUserLayout.setVisibility(View.VISIBLE);
                     userLayout.setVisibility(View.GONE);
 
-                    if (TextUtils.isEmpty(chatMessage.getFilePath())) {//如果有圖片訊息就秀圖
+                    if (TextUtils.isEmpty(filePath)) {//如果有圖片訊息就秀圖
                         txvMsg_Other.setVisibility(View.VISIBLE);
                         imgMsg_other.setVisibility(View.GONE);
                         txv_time_imgOther.setVisibility(View.GONE);
 
-                        txvMsg_Other.setText(chatMessage.getMessage());
+                        txvMsg_Other.setText(chatMsg);
                         txvTime_Other.setText(sendTime);
                     } else {
                         txvMsg_Other.setVisibility(View.GONE);
@@ -554,7 +533,7 @@ public class MainActivity extends AppCompatActivity {
                         txv_time_imgOther.setVisibility(View.VISIBLE);
 
                         storageReference = FirebaseStorage.getInstance().getReference();
-                        storageReference = storageReference.child(chatMessage.getFilePath());
+                        storageReference = storageReference.child(filePath);
                         //讀取圖片
                         storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                             @Override
@@ -587,9 +566,9 @@ public class MainActivity extends AppCompatActivity {
                     userLayout.setVisibility(View.VISIBLE);
                     otherUserLayout.setVisibility(View.GONE);
 
-                    if (TextUtils.isEmpty(chatMessage.getFilePath())) {//如果有圖片訊息就秀圖
+                    if (TextUtils.isEmpty(filePath)) {//如果有圖片訊息就秀圖
                         txvMsg_User.setVisibility(View.VISIBLE);
-                        txvMsg_User.setText(chatMessage.getMessage());
+                        txvMsg_User.setText(chatMsg);
                         imgMsg_user.setVisibility(View.GONE);
 
                         txv_time_imgUSer.setVisibility(View.GONE);
@@ -602,7 +581,7 @@ public class MainActivity extends AppCompatActivity {
                         imgMsg_user.setVisibility(View.VISIBLE);
 
                         storageReference = FirebaseStorage.getInstance().getReference();
-                        storageReference = storageReference.child(chatMessage.getFilePath());
+                        storageReference = storageReference.child(filePath);
                         storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                             @Override
                             public void onSuccess(Uri uri) {

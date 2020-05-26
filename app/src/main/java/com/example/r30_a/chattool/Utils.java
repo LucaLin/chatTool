@@ -139,4 +139,32 @@ public class Utils {
         }
         return uploadFile;
     }
+
+    //壓縮來源圖片
+    public File compressUploadPhoto(File tempFile, String cameraPath, String cameraFileName) throws IOException {
+
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+
+        options.inSampleSize = Utils.getInstance().calculateInSampleSize(options, 480, 800);//解析度
+        options.inJustDecodeBounds = false;
+        Bitmap bitmap = BitmapFactory.decodeFile(cameraPath, options);
+
+        int degree = Utils.getInstance().getRotationDegree(cameraPath);
+        bitmap = Utils.getInstance().rotateBitmap(bitmap, degree);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
+        byte[] bitmapdata = baos.toByteArray();
+
+        File uploadFile = new File(tempFile, cameraFileName);
+        uploadFile.createNewFile();
+
+        FileOutputStream fos = new FileOutputStream(uploadFile);
+        fos.write(bitmapdata);
+        fos.flush();
+        fos.close();
+
+        return uploadFile;
+    }
 }

@@ -18,14 +18,32 @@
             android:layout_centerHorizontal="true"
             android:layout_marginTop="400dp">
 
-            <ImageView
-                android:id="@+id/img_info_avatar"
-                android:background="@mipmap/iconfinder_man_196742"
-                android:scaleType="center"
-                android:layout_margin="10dp"
+            <RelativeLayout
+                android:id="@+id/img_layout"
                 android:layout_width="90dp"
                 android:layout_height="90dp"
-                android:layout_centerHorizontal="true"/>
+                android:layout_centerHorizontal="true">
+
+                <ImageView
+                    android:id="@+id/img_info_avatar"
+                    android:background="@mipmap/iconfinder_man_196742"
+                    android:scaleType="center"
+                    android:layout_margin="10dp"
+                    android:layout_width="90dp"
+                    android:layout_height="90dp"
+                    android:layout_centerHorizontal="true"/>
+
+                <ImageView
+                    android:id="@+id/img_changeAvatar"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@mipmap/camera"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentBottom="true"
+                    android:visibility="invisible"/>
+            </RelativeLayout>
+
+
 
             <!--    <LinearLayout-->
             <!--        android:layout_width="150dp"-->
@@ -42,7 +60,7 @@
                 android:textColor="#FFFFFF"
                 android:text="name"
                 android:layout_centerHorizontal="true"
-                android:layout_below="@id/img_info_avatar"/>
+                android:layout_below="@id/img_layout"/>
 
         </RelativeLayout>
 

@@ -15,6 +15,7 @@ import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -35,8 +36,12 @@ import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -66,6 +71,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
@@ -75,6 +81,8 @@ public class MainActivity extends AppCompatActivity {
     // 取得結果用的 Request Code
     private final int CAMERA_REQUEST = 5001;
     private final int ALBUM_REQUEST = 5002;
+    private final int AVATAR_CAMERA_REQUEST = 5003;
+    private final int AVATAR_ALBUM_REQUEST = 5004;
     public static final int SIGN_IN_REQUEST = 1;
     private static final int REQUEST_CAMERA_AND_WRITE_STORAGE = 5000;
     public static final String AUTHORITY = "com.example.r30_a.fileprovider";
@@ -95,6 +103,9 @@ public class MainActivity extends AppCompatActivity {
     private String cameraFileName;
     private String cameraPath;
 
+    FloatingActionButton fabCamera, fabAlbum;
+    private String filePath, avatarPath;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -110,18 +121,15 @@ public class MainActivity extends AppCompatActivity {
         checkIfLogin();//檢查是否已登入
 
         //訊息框
-        edtInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    if (!TextUtils.isEmpty(edtInput.getText())) {
-                        sendMsg();
-                        recyclerView.scrollToPosition(adapter.getItemCount() - 1);
-                        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);//送出後鍵盤收起
-                    }
+        edtInput.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                if (!TextUtils.isEmpty(edtInput.getText())) {
+                    sendMsg();
+                    recyclerView.scrollToPosition(adapter.getItemCount() - 1);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);//送出後鍵盤收起
                 }
-                return true;
             }
+            return true;
         });
 
 
@@ -137,6 +145,12 @@ public class MainActivity extends AppCompatActivity {
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         edtInput = findViewById(R.id.edtInput);
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+
+        fabCamera = findViewById(R.id.fabCamera);
+        fabAlbum = findViewById(R.id.fabAlbum);
+
+        fabCamera.setOnClickListener(v -> fabTakePhoto(v,CAMERA_REQUEST));
+        fabAlbum.setOnClickListener(v -> fabAlbum(v,ALBUM_REQUEST));
 
         reference.addChildEventListener(new ChildEventListener() {
             @Override//收到新訊息時自動往下捲
@@ -196,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //拍照
-    public void fabTakePhoto(View v) {
+    public void fabTakePhoto(View v, int requestCode) {
         //檢查權限後拍照
         if (checkPhotoPermission()) {
 
@@ -214,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
 
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);//使用拍照
             intent.putExtra(MediaStore.EXTRA_OUTPUT, camera_uri);
-            startActivityForResult(intent, CAMERA_REQUEST);
+            startActivityForResult(intent, requestCode);
 
         } else {
             // 要求權限
@@ -231,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void fabAlbum(View v) {//開啟相簿
+    public void fabAlbum(View v, int requestCode) {//開啟相簿
         if (checkAlbumPermission()) {
 
             cameraFileName = Utils.getInstance().getFileName();
@@ -242,7 +256,7 @@ public class MainActivity extends AppCompatActivity {
             Intent albumIntent = new Intent();
             albumIntent.setType("image/*");//設定只顯示圖片區，不要秀其它的資料夾
             albumIntent.setAction(Intent.ACTION_GET_CONTENT);//取得本機相簿的action
-            startActivityForResult(albumIntent, ALBUM_REQUEST);
+            startActivityForResult(albumIntent, requestCode);
 
 
         } else {
@@ -274,8 +288,7 @@ public class MainActivity extends AppCompatActivity {
         String msg = edtInput.getText().toString();
         String userName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
         long time = new Date().getTime();
-        reference.push()
-                .setValue(new ChatMessage(userName, msg, time, uuid));
+        reference.push().setValue(new ChatMessage(userName, msg, time, uuid, avatarPath));
 
         edtInput.setText("");
 
@@ -355,18 +368,8 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 protected void populateViewHolder(ChatMessageHolder viewHolder, ChatMessage model, final int position) {
                     viewHolder.setValues(model);
-                    viewHolder.img_avatar_other.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            showInfo(position);
-                        }
-                    });
-                    viewHolder.img_avatar_user.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            showInfo(position);
-                        }
-                    });
+                    viewHolder.img_avatar_other.setOnClickListener(v -> showInfo(position));
+                    viewHolder.img_avatar_user.setOnClickListener(v -> showInfo(position));
 
 
                 }
@@ -389,19 +392,59 @@ public class MainActivity extends AppCompatActivity {
         dialog.setContentView(R.layout.dialog_avatar_info);
         dialog.setCanceledOnTouchOutside(false);
 
-        ImageView img_avatar = dialog.findViewById(R.id.img_info_avatar);
+        final ImageView img_avatar = dialog.findViewById(R.id.img_info_avatar);
         ImageView img_close = dialog.findViewById(R.id.img_close);
+        ImageView img_changeAvatar = dialog.findViewById(R.id.img_changeAvatar);
         TextView txv_name = dialog.findViewById(R.id.txv_dialog_name);
 
-        ChatMessage data = adapter.getItem(position);
+        final ChatMessage data = adapter.getItem(position);
         txv_name.setText(data.getUserName());
 
-        img_close.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-            }
-        });
+        img_close.setOnClickListener(v -> dialog.dismiss());
+
+        if(data.getAvatarPath() != null) {
+            storageReference = FirebaseStorage.getInstance().getReference();
+            storageReference = storageReference.child(data.getAvatarPath());
+            storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(MainActivity.this)
+                    .load(uri)
+                    .into(img_avatar)).addOnFailureListener(e -> e.printStackTrace());
+        }
+
+        if (data.getUuid().equals(uuid)) {//如果是user才問要不要換
+            img_changeAvatar.setVisibility(View.VISIBLE);
+        }
+        img_changeAvatar.setOnClickListener(v -> {
+
+                ArrayList<String> typeList = new ArrayList<>();
+                typeList.add("拍照");
+                typeList.add("從相簿選");
+
+                View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.popup_window, null, false);
+                ListView listView = view.findViewById(R.id.type_listview);
+                ArrayAdapter<String> nameAdapter = new ArrayAdapter<>(MainActivity.this,
+                        android.R.layout.simple_list_item_1,
+                        typeList);
+                listView.setAdapter(nameAdapter);
+
+                PopupWindow popupWindow = new PopupWindow(view, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+                popupWindow.setBackgroundDrawable(getDrawable(android.R.color.white));
+                popupWindow.setTouchable(true);
+                popupWindow.showAsDropDown(v, 0, 0);
+                popupWindow.setContentView(view);
+
+                listView.setOnItemClickListener((parent, view1, position1, id) -> {
+                    switch (position1){
+                        case 0: //拍照
+                            fabTakePhoto(view1,AVATAR_CAMERA_REQUEST);
+                            dialog.dismiss();
+                            break;
+                        case 1://從相簿選
+                            fabAlbum(view1,AVATAR_ALBUM_REQUEST);
+                            dialog.dismiss();
+                            break;
+                    }
+                });
+            });
 
         dialog.show();
 
@@ -418,7 +461,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, getResources().getText(R.string.loginFail), Toast.LENGTH_SHORT).show();
                 finish();
             }
-        } else if (requestCode == CAMERA_REQUEST) {//獲取拍照結果
+        } else if (requestCode == CAMERA_REQUEST || requestCode == AVATAR_CAMERA_REQUEST) {//獲取拍照結果
             if (resultCode == RESULT_OK) {
                 try {
                     //https://www.itread01.com/content/1547700324.html
@@ -426,7 +469,9 @@ public class MainActivity extends AppCompatActivity {
                     File tempFile = getCacheDir();
 
                     final Uri uri = Uri.fromFile(Utils.getInstance().compressUploadPhoto(tempFile,cameraPath,cameraFileName));
-                    uploadFile(uri, uri.getLastPathSegment());
+                    if(requestCode == AVATAR_CAMERA_REQUEST)
+                        avatarPath = uri.getLastPathSegment();
+                    uploadFile(uri, uri.getLastPathSegment(), requestCode);
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -435,14 +480,15 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "請重試一次", Toast.LENGTH_LONG).show();
             }
 
-        } else if (requestCode == ALBUM_REQUEST) {
+        } else if (requestCode == ALBUM_REQUEST || requestCode == AVATAR_ALBUM_REQUEST) {
             if (resultCode == RESULT_OK && data != null && data.getData() != null) {
                 try {
 
                     Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
                     File file = Utils.getInstance().bitmapToFile(getCacheDir(), cameraFileName, bitmap);
-
-                    uploadFile(Uri.fromFile(file), file.getName());
+                    if(requestCode == AVATAR_ALBUM_REQUEST)
+                        avatarPath = file.getName();
+                    uploadFile(Uri.fromFile(file), file.getName(), requestCode);
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -455,7 +501,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //上傳圖片訊息至firebase雲端
-    private void uploadFile(Uri uri, final String fileName) {
+    private void uploadFile(Uri uri, final String fileName, final int requestCode) {
 
         storageReference = FirebaseStorage.getInstance().getReference();
         storageReference = storageReference.child(fileName);
@@ -465,20 +511,18 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         UploadTask uploadTask = storageReference.putFile(uri, metadata);
-        uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                String userName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
-                long time = new Date().getTime();
-                reference.push()
-                        .setValue(new ChatMessage(userName, time, uuid, fileName));
+        uploadTask.addOnSuccessListener(taskSnapshot -> {
+            String userName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+            long time = new Date().getTime();
+
+            if(requestCode == CAMERA_REQUEST || requestCode == ALBUM_REQUEST){//上傳圖片
+                reference.push().setValue(new ChatMessage(userName, time, uuid, fileName));
+            }else {//更新大頭貼
+                reference.push().setValue(new ChatMessage(userName, time, uuid,null, fileName));
             }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                e.printStackTrace();
-            }
-        });
+
+
+        }).addOnFailureListener(e -> e.printStackTrace());
     }
 
     //處理訊息的地方
@@ -525,108 +569,105 @@ public class MainActivity extends AppCompatActivity {
 
                 String sendTime = new SimpleDateFormat("hh:mm a", Locale.ENGLISH).format(chatMessage.getTime());
                 String filePath = chatMessage.getFilePath();
+                String avatarPath = chatMessage.getAvatarPath();
                 String chatMsg = chatMessage.getMessage();
-
-                if (!chatMessage.getUuid().equals(uuid)) {//使用裝置id讓判斷訊息來自使用者或對方
-                    otherUserLayout.setVisibility(View.VISIBLE);
-                    userLayout.setVisibility(View.GONE);
-
-                    if (TextUtils.isEmpty(filePath)) {//如果有圖片訊息就秀圖
-                        txvMsg_Other.setVisibility(View.VISIBLE);
-                        imgMsg_other.setVisibility(View.GONE);
-                        txv_time_imgOther.setVisibility(View.GONE);
-
-                        txvMsg_Other.setText(chatMsg);
-                        txvTime_Other.setText(sendTime);
-                    } else {
-                        txvMsg_Other.setVisibility(View.GONE);
-                        imgMsg_other.setVisibility(View.VISIBLE);
-
-                        txvTime_Other.setVisibility(View.GONE);
-                        txv_time_imgOther.setVisibility(View.VISIBLE);
-
-                        storageReference = FirebaseStorage.getInstance().getReference();
-                        storageReference = storageReference.child(filePath);
-                        //讀取圖片
-                        storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                            @Override
-                            public void onSuccess(Uri uri) {
-
-                                Glide.with(MainActivity.this)
-                                        .load(uri)
-                                        .into(imgMsg_other);
-
-                            }
-                        }).addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                e.printStackTrace();
-                                Toast.makeText(MainActivity.this, "請重新讀取", Toast.LENGTH_LONG).show();
-                            }
-                        });
-                        txv_time_imgOther.setText(sendTime);
-                        imgMsg_other.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                showPhoto(chatMessage);
-                            }
-                        });
-                    }
-
-                    txvUser_Other.setText(chatMessage.getUserName());
-
-                } else {
-                    userLayout.setVisibility(View.VISIBLE);
+                if (chatMsg == null) {
                     otherUserLayout.setVisibility(View.GONE);
+                    userLayout.setVisibility(View.GONE);
+                } else {
+                    if (!chatMessage.getUuid().equals(uuid)) {//使用裝置id讓判斷訊息來自使用者或對方
+                        otherUserLayout.setVisibility(View.VISIBLE);
+                        userLayout.setVisibility(View.GONE);
 
-                    if (TextUtils.isEmpty(filePath)) {//如果有圖片訊息就秀圖
-                        txvMsg_User.setVisibility(View.VISIBLE);
-                        txvMsg_User.setText(chatMsg);
-                        imgMsg_user.setVisibility(View.GONE);
+                        if (!TextUtils.isEmpty(avatarPath)) {
+                            storageReference = FirebaseStorage.getInstance().getReference();
+                            storageReference = storageReference.child(avatarPath);
+                            storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(MainActivity.this)
+                                    .load(uri)
+                                    .into(img_avatar_other)).addOnFailureListener(e -> e.printStackTrace());
+                        }
 
-                        txv_time_imgUSer.setVisibility(View.GONE);
-                        txvTime_User.setVisibility(View.VISIBLE);
-                        txvTime_User.setText(sendTime);
+                        if (TextUtils.isEmpty(filePath)) {//如果有圖片訊息就秀圖
+                            txvMsg_Other.setVisibility(View.VISIBLE);
+                            imgMsg_other.setVisibility(View.GONE);
+                            txv_time_imgOther.setVisibility(View.GONE);
 
-                    } else {
+                            txvMsg_Other.setText(chatMsg);
+                            txvTime_Other.setText(sendTime);
+                        } else {
+                            txvMsg_Other.setVisibility(View.GONE);
+                            imgMsg_other.setVisibility(View.VISIBLE);
 
-                        txvMsg_User.setVisibility(View.GONE);
-                        imgMsg_user.setVisibility(View.VISIBLE);
+                            txvTime_Other.setVisibility(View.GONE);
+                            txv_time_imgOther.setVisibility(View.VISIBLE);
 
-                        storageReference = FirebaseStorage.getInstance().getReference();
-                        storageReference = storageReference.child(filePath);
-                        storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                            @Override
-                            public void onSuccess(Uri uri) {
+                            storageReference = FirebaseStorage.getInstance().getReference();
+                            storageReference = storageReference.child(filePath);
+                            //讀取圖片
+                            storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(MainActivity.this)
+                                    .load(uri)
+                                    .into(imgMsg_other)).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    e.printStackTrace();
+                                    Toast.makeText(MainActivity.this, "請重新讀取", Toast.LENGTH_LONG).show();
+                                }
+                            });
+                            txv_time_imgOther.setText(sendTime);
+                            imgMsg_other.setOnClickListener(v -> showPhoto(chatMessage));
+                        }
 
-                                Glide.with(MainActivity.this)
-                                        .load(uri)
-                                        .into(imgMsg_user);
+                        txvUser_Other.setText(chatMessage.getUserName());
 
-                            }
-                        }).addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                e.printStackTrace();
-                            }
-                        });
+                    } else {//自己
+                        userLayout.setVisibility(View.VISIBLE);
+                        otherUserLayout.setVisibility(View.GONE);
 
-                        txv_time_imgUSer.setVisibility(View.VISIBLE);
-                        txvTime_User.setVisibility(View.GONE);
-                        txv_time_imgUSer.setText(sendTime);
+                        if (!TextUtils.isEmpty(avatarPath)) {
+                            storageReference = FirebaseStorage.getInstance().getReference();
+                            storageReference = storageReference.child(avatarPath);
+                            storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(MainActivity.this)
+                                    .load(uri)
+                                    .into(img_avatar_user)).addOnFailureListener(e -> e.printStackTrace());
+                        }
 
-                        imgMsg_user.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                showPhoto(chatMessage);
-                            }
-                        });
+                        if (TextUtils.isEmpty(filePath)) {//如果有圖片訊息就秀圖
+                            txvMsg_User.setVisibility(View.VISIBLE);
+                            txvMsg_User.setText(chatMsg);
+                            imgMsg_user.setVisibility(View.GONE);
+
+                            txv_time_imgUSer.setVisibility(View.GONE);
+                            txvTime_User.setVisibility(View.VISIBLE);
+                            txvTime_User.setText(sendTime);
+
+                        } else {
+
+                            txvMsg_User.setVisibility(View.GONE);
+                            imgMsg_user.setVisibility(View.VISIBLE);
+
+                            storageReference = FirebaseStorage.getInstance().getReference();
+                            storageReference = storageReference.child(filePath);
+                            storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(MainActivity.this)
+                                    .load(uri)
+                                    .into(imgMsg_user)).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    e.printStackTrace();
+                                }
+                            });
+
+                            txv_time_imgUSer.setVisibility(View.VISIBLE);
+                            txvTime_User.setVisibility(View.GONE);
+                            txv_time_imgUSer.setText(sendTime);
+
+                            imgMsg_user.setOnClickListener(v -> showPhoto(chatMessage));
+                        }
+
+
                     }
 
                 }
-
             }
-
         }
 
         public void showPhoto(ChatMessage chatMessage) {
@@ -635,14 +676,9 @@ public class MainActivity extends AppCompatActivity {
             final ImageView img_photo = dialog.findViewById(R.id.img_dialog_photo);
             storageReference = FirebaseStorage.getInstance().getReference();
             storageReference = storageReference.child(chatMessage.getFilePath());
-            storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                @Override
-                public void onSuccess(Uri uri) {
-                    Glide.with(MainActivity.this)
-                            .load(uri)
-                            .into(img_photo);
-                }
-            });
+            storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(MainActivity.this)
+                    .load(uri)
+                    .into(img_photo));
 
             dialog.setCanceledOnTouchOutside(true);
             dialog.show();

@@ -30,7 +30,6 @@
         android:clickable="true"
         android:src="@drawable/camera"
         android:tint="@android:color/white"
-        android:onClick="fabTakePhoto"
         app:fabSize="mini" />
 
     <android.support.design.widget.FloatingActionButton

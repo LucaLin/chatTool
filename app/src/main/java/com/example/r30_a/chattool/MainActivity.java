@@ -1,15 +1,12 @@
 package com.example.r30_a.chattool;
 
 import android.Manifest;
-import android.animation.Animator;
-import android.animation.AnimatorSet;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
@@ -24,20 +21,14 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -62,15 +53,12 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ServerValue;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -92,6 +80,8 @@ public class MainActivity extends AppCompatActivity {
     public static final int SIGN_IN_REQUEST = 1;
     private static final int REQUEST_CAMERA_AND_WRITE_STORAGE = 5000;
     public static final String AUTHORITY = "com.example.r30_a.fileprovider";
+
+    private Toast toast;
 
     private EditText edtInput;
 
@@ -165,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void findViewAndGetInstance() {
         sharedPreferences = getSharedPreferences("chatTool",MODE_PRIVATE);
+        Toast.makeText(MainActivity.this, "", Toast.LENGTH_LONG);
         reference = FirebaseDatabase.getInstance().getReference();
         storageReference = FirebaseStorage.getInstance().getReference();
 
@@ -220,7 +211,8 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(AuthUI.getInstance().createSignInIntentBuilder().build(), SIGN_IN_REQUEST);
 
         } else {
-            Toast.makeText(this, getResources().getText(R.string.welcome) + FirebaseAuth.getInstance().getCurrentUser().getDisplayName(), Toast.LENGTH_SHORT).show();
+            toast.setText(getResources().getText(R.string.welcome) + FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
+            toast.show();
             displayChatMsg();
         }
     }
@@ -377,7 +369,8 @@ public class MainActivity extends AppCompatActivity {
                                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                                         @Override
                                         public void onComplete(@NonNull Task<Void> task) {
-                                            Toast.makeText(MainActivity.this, "已登出囉！", Toast.LENGTH_SHORT).show();
+                                           toast.setText("已登出囉！");
+                                           toast.show();
                                             finish();
                                         }
                                     });
@@ -499,10 +492,12 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == SIGN_IN_REQUEST) {
             if (resultCode == RESULT_OK) {
-                Toast.makeText(this, getResources().getText(R.string.loginSuccess), Toast.LENGTH_SHORT).show();
+                toast.setText(getResources().getText(R.string.loginSuccess));
+                toast.show();
                 displayChatMsg();
             } else {
-                Toast.makeText(this, getResources().getText(R.string.loginFail), Toast.LENGTH_SHORT).show();
+                toast.setText(getResources().getText(R.string.loginFail));
+                toast.show();
                 finish();
             }
         } else if (requestCode == CAMERA_REQUEST || requestCode == AVATAR_CAMERA_REQUEST) {//獲取拍照結果
@@ -521,7 +516,8 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             } else {
-                Toast.makeText(MainActivity.this, "請重試一次", Toast.LENGTH_LONG).show();
+                toast.setText("請重試一次");
+                toast.show();
             }
 
         } else if (requestCode == ALBUM_REQUEST || requestCode == AVATAR_ALBUM_REQUEST) {
@@ -539,7 +535,8 @@ public class MainActivity extends AppCompatActivity {
                 }
 
             } else {
-                Toast.makeText(MainActivity.this, "請重試一次", Toast.LENGTH_LONG).show();
+                toast.setText("請重試一次");
+                toast.show();
             }
         }
     }
@@ -660,7 +657,8 @@ public class MainActivity extends AppCompatActivity {
                                 @Override
                                 public void onFailure(@NonNull Exception e) {
                                     e.printStackTrace();
-                                    Toast.makeText(MainActivity.this, "請重新讀取", Toast.LENGTH_LONG).show();
+                                    toast.setText("請重新讀取");
+                                    toast.show();
                                 }
                             });
                             txv_time_imgOther.setText(sendTime);

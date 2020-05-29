@@ -1,4 +1,4 @@
-package com.example.r30_a.chattool;
+package com.example.r30_a.chattool.Util;
 
 import android.content.ContentResolver;
 import android.content.Context;

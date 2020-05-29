@@ -1,4 +1,4 @@
-package com.example.r30_a.chattool;
+package com.example.r30_a.chattool.Controller;
 
 import android.Manifest;
 import android.app.Dialog;
@@ -40,6 +40,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.r30_a.chattool.Model.ChatMessage;
+import com.example.r30_a.chattool.R;
+import com.example.r30_a.chattool.Util.BitmapUtil;
+import com.example.r30_a.chattool.Util.PermissionTool;
+import com.example.r30_a.chattool.Util.Utils;
 import com.firebase.ui.auth.AuthUI;
 //import com.firebase.ui.database.FirebaseListOptions;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;

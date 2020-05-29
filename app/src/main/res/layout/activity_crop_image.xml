@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:paddingLeft="8dp"
     android:paddingRight="8dp"
-    tools:context="com.example.r30_a.chattool.CropImageActivity">
+    tools:context="com.example.r30_a.chattool.Controller.CropImageActivity">
 
     <LinearLayout
         android:id="@+id/buttonlayout"
@@ -41,7 +41,7 @@
         android:layout_marginBottom="10dp"
         android:layout_marginTop="10dp">
 
-        <com.example.r30_a.chattool.ScaleImageView
+        <com.example.r30_a.chattool.View.ScaleImageView
             android:id="@+id/imgPic"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

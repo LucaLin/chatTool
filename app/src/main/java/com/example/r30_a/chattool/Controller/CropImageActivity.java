@@ -1,4 +1,4 @@
-package com.example.r30_a.chattool;
+package com.example.r30_a.chattool.Controller;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -18,6 +18,10 @@ import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+
+import com.example.r30_a.chattool.R;
+import com.example.r30_a.chattool.Util.BitmapUtil;
+import com.example.r30_a.chattool.View.ScaleImageView;
 
 import java.io.File;
 import java.io.IOException;

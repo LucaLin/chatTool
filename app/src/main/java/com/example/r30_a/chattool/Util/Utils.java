@@ -1,4 +1,4 @@
-package com.example.r30_a.chattool;
+package com.example.r30_a.chattool.Util;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;

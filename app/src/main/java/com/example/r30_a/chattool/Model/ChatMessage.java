@@ -1,4 +1,4 @@
-package com.example.r30_a.chattool;
+package com.example.r30_a.chattool.Model;
 
 
 public class ChatMessage {

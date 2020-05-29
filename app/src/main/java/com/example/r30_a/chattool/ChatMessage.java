@@ -26,6 +26,15 @@ public class ChatMessage {
         this.avatarPath = avatarPath;
     }
 
+    public ChatMessage(String userName, String message,long time, String uuid,String filePath,String avatarPath) {
+        this.userName = userName;
+        this.message = message;
+        this.time = time;
+        this.uuid = uuid;
+        this.filePath = filePath;
+        this.avatarPath = avatarPath;
+    }
+
 
 
     public ChatMessage(String userName, long time, String uuid, String filePath){

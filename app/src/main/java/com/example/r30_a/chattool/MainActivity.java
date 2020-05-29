@@ -7,6 +7,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -61,6 +62,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
@@ -73,7 +75,11 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -106,6 +112,10 @@ public class MainActivity extends AppCompatActivity {
     FloatingActionButton fabCamera, fabAlbum;
     private String filePath, avatarPath;
 
+    ArrayList<String> keyList = new ArrayList<>();
+
+    SharedPreferences sharedPreferences;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
 
         setUUID();//取得裝置uuid
 
-        findViewAndGetInstance();
+        findViewAndGetInstance();//綁定各種view與實體化
 
         checkIfLogin();//檢查是否已登入
 
@@ -135,7 +145,26 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //取回user的發話keyList
+        keyList = new ArrayList<>();
+        Set<String> saveKeyList = new HashSet<>();
+        saveKeyList = sharedPreferences.getStringSet("keyList",saveKeyList);
+        for(String s: saveKeyList){
+            keyList.add(s);
+        }
+
+    }
+
     private void findViewAndGetInstance() {
+        sharedPreferences = getSharedPreferences("chatTool",MODE_PRIVATE);
         reference = FirebaseDatabase.getInstance().getReference();
         storageReference = FirebaseStorage.getInstance().getReference();
 
@@ -149,8 +178,8 @@ public class MainActivity extends AppCompatActivity {
         fabCamera = findViewById(R.id.fabCamera);
         fabAlbum = findViewById(R.id.fabAlbum);
 
-        fabCamera.setOnClickListener(v -> fabTakePhoto(v,CAMERA_REQUEST));
-        fabAlbum.setOnClickListener(v -> fabAlbum(v,ALBUM_REQUEST));
+        fabCamera.setOnClickListener(v -> fabTakePhoto(v, CAMERA_REQUEST));
+        fabAlbum.setOnClickListener(v -> fabAlbum(v, ALBUM_REQUEST));
 
         reference.addChildEventListener(new ChildEventListener() {
             @Override//收到新訊息時自動往下捲
@@ -258,7 +287,6 @@ public class MainActivity extends AppCompatActivity {
             albumIntent.setAction(Intent.ACTION_GET_CONTENT);//取得本機相簿的action
             startActivityForResult(albumIntent, requestCode);
 
-
         } else {
             PermissionTool.getInstance().requestReadExternalStoragePermission(this);
         }
@@ -288,11 +316,27 @@ public class MainActivity extends AppCompatActivity {
         String msg = edtInput.getText().toString();
         String userName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
         long time = new Date().getTime();
-        reference.push().setValue(new ChatMessage(userName, msg, time, uuid, avatarPath));
+        String key = reference.push().getKey();
+        keyList.add(key);
+        if(TextUtils.isEmpty(avatarPath))
+            avatarPath = "";
+        reference.child(key).setValue(new ChatMessage(userName, msg, time, uuid,"", avatarPath));
+        //{
+        //  "-M8TvppfDc_JZulwYR9e" : {
+        //    "avatarPath" : "20200529134748-344.jpg",
+        //    "filePath" : "",
+        //    "message" : "jrd",
+        //    "time" : 1590730652270,
+        //    "userName" : "Luca Lin",
+        //    "uuid" : "GAGQRKIVUGRSKJQO"
+        //  },
 
         edtInput.setText("");
-
-
+        Set<String> saveKeyList = new HashSet<>();
+        for(int i = 0; i< keyList.size(); i++){
+            saveKeyList.add(keyList.get(i));
+        }
+        sharedPreferences.edit().putStringSet("keyList",saveKeyList).commit();
 
     }
 
@@ -402,7 +446,7 @@ public class MainActivity extends AppCompatActivity {
 
         img_close.setOnClickListener(v -> dialog.dismiss());
 
-        if(data.getAvatarPath() != null) {
+        if (!TextUtils.isEmpty(data.getAvatarPath())) {
             storageReference = FirebaseStorage.getInstance().getReference();
             storageReference = storageReference.child(data.getAvatarPath());
             storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(MainActivity.this)
@@ -415,36 +459,36 @@ public class MainActivity extends AppCompatActivity {
         }
         img_changeAvatar.setOnClickListener(v -> {
 
-                ArrayList<String> typeList = new ArrayList<>();
-                typeList.add("拍照");
-                typeList.add("從相簿選");
+            ArrayList<String> typeList = new ArrayList<>();
+            typeList.add("拍照");
+            typeList.add("從相簿選");
 
-                View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.popup_window, null, false);
-                ListView listView = view.findViewById(R.id.type_listview);
-                ArrayAdapter<String> nameAdapter = new ArrayAdapter<>(MainActivity.this,
-                        android.R.layout.simple_list_item_1,
-                        typeList);
-                listView.setAdapter(nameAdapter);
+            View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.popup_window, null, false);
+            ListView listView = view.findViewById(R.id.type_listview);
+            ArrayAdapter<String> nameAdapter = new ArrayAdapter<>(MainActivity.this,
+                    android.R.layout.simple_list_item_1,
+                    typeList);
+            listView.setAdapter(nameAdapter);
 
-                PopupWindow popupWindow = new PopupWindow(view, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
-                popupWindow.setBackgroundDrawable(getDrawable(android.R.color.white));
-                popupWindow.setTouchable(true);
-                popupWindow.showAsDropDown(v, 0, 0);
-                popupWindow.setContentView(view);
+            PopupWindow popupWindow = new PopupWindow(view, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+            popupWindow.setBackgroundDrawable(getDrawable(android.R.color.white));
+            popupWindow.setTouchable(true);
+            popupWindow.showAsDropDown(v, 0, 0);
+            popupWindow.setContentView(view);
 
-                listView.setOnItemClickListener((parent, view1, position1, id) -> {
-                    switch (position1){
-                        case 0: //拍照
-                            fabTakePhoto(view1,AVATAR_CAMERA_REQUEST);
-                            dialog.dismiss();
-                            break;
-                        case 1://從相簿選
-                            fabAlbum(view1,AVATAR_ALBUM_REQUEST);
-                            dialog.dismiss();
-                            break;
-                    }
-                });
+            listView.setOnItemClickListener((parent, view1, position1, id) -> {
+                switch (position1) {
+                    case 0: //拍照
+                        fabTakePhoto(view1, AVATAR_CAMERA_REQUEST);
+                        dialog.dismiss();
+                        break;
+                    case 1://從相簿選
+                        fabAlbum(view1, AVATAR_ALBUM_REQUEST);
+                        dialog.dismiss();
+                        break;
+                }
             });
+        });
 
         dialog.show();
 
@@ -468,8 +512,8 @@ public class MainActivity extends AppCompatActivity {
                     //https://givemepass.blogspot.com/2017/03/firebase-storage.html
                     File tempFile = getCacheDir();
 
-                    final Uri uri = Uri.fromFile(Utils.getInstance().compressUploadPhoto(tempFile,cameraPath,cameraFileName));
-                    if(requestCode == AVATAR_CAMERA_REQUEST)
+                    final Uri uri = Uri.fromFile(Utils.getInstance().compressUploadPhoto(tempFile, cameraPath, cameraFileName));
+                    if (requestCode == AVATAR_CAMERA_REQUEST)
                         avatarPath = uri.getLastPathSegment();
                     uploadFile(uri, uri.getLastPathSegment(), requestCode);
 
@@ -486,7 +530,7 @@ public class MainActivity extends AppCompatActivity {
 
                     Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
                     File file = Utils.getInstance().bitmapToFile(getCacheDir(), cameraFileName, bitmap);
-                    if(requestCode == AVATAR_ALBUM_REQUEST)
+                    if (requestCode == AVATAR_ALBUM_REQUEST)
                         avatarPath = file.getName();
                     uploadFile(Uri.fromFile(file), file.getName(), requestCode);
 
@@ -515,10 +559,16 @@ public class MainActivity extends AppCompatActivity {
             String userName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
             long time = new Date().getTime();
 
-            if(requestCode == CAMERA_REQUEST || requestCode == ALBUM_REQUEST){//上傳圖片
+            if (requestCode == CAMERA_REQUEST || requestCode == ALBUM_REQUEST) {//上傳圖片
                 reference.push().setValue(new ChatMessage(userName, time, uuid, fileName));
-            }else {//更新大頭貼
-                reference.push().setValue(new ChatMessage(userName, time, uuid,null, fileName));
+            } else {//更新大頭貼
+
+                Map<String, Object> map = new HashMap<>();
+                for (int i = 0; i < keyList.size(); i++) {
+                    map.put(keyList.get(i)+"/avatarPath", fileName);
+                }
+                reference.updateChildren(map);
+
             }
 
 

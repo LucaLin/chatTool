@@ -17,8 +17,8 @@
 
             <ImageView
                 android:id="@+id/img_avatar_user"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
                 android:layout_alignParentEnd="true"
                 android:src="@mipmap/iconfinder_man_196742" />
 
@@ -81,8 +81,8 @@
 
                 <ImageView
                     android:id="@+id/img_avatar_other"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
                     android:onClick="showInfo"
                     android:src="@mipmap/iconfinder_man_196742" />
 

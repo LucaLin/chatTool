@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
@@ -77,6 +78,8 @@ public class MainActivity extends AppCompatActivity {
     private final int ALBUM_REQUEST = 5002;
     private final int AVATAR_CAMERA_REQUEST = 5003;
     private final int AVATAR_ALBUM_REQUEST = 5004;
+    private final int ALBUM_CROP_REQUEST = 5005;
+    private final int AVATAR_ALBUM_CROP_REQUEST = 5006;
     public static final int SIGN_IN_REQUEST = 1;
     private static final int REQUEST_CAMERA_AND_WRITE_STORAGE = 5000;
     public static final String AUTHORITY = "com.example.r30_a.fileprovider";
@@ -150,12 +153,13 @@ public class MainActivity extends AppCompatActivity {
         for(String s: saveKeyList){
             keyList.add(s);
         }
+        avatarPath = sharedPreferences.getString("avatarPath","");
 
     }
 
     private void findViewAndGetInstance() {
         sharedPreferences = getSharedPreferences("chatTool",MODE_PRIVATE);
-        Toast.makeText(MainActivity.this, "", Toast.LENGTH_LONG);
+        toast = Toast.makeText(MainActivity.this, "", Toast.LENGTH_LONG);
         reference = FirebaseDatabase.getInstance().getReference();
         storageReference = FirebaseStorage.getInstance().getReference();
 
@@ -408,7 +412,6 @@ public class MainActivity extends AppCompatActivity {
                     viewHolder.img_avatar_other.setOnClickListener(v -> showInfo(position));
                     viewHolder.img_avatar_user.setOnClickListener(v -> showInfo(position));
 
-
                 }
             };
 
@@ -522,22 +525,58 @@ public class MainActivity extends AppCompatActivity {
 
         } else if (requestCode == ALBUM_REQUEST || requestCode == AVATAR_ALBUM_REQUEST) {
             if (resultCode == RESULT_OK && data != null && data.getData() != null) {
-                try {
 
-                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
-                    File file = Utils.getInstance().bitmapToFile(getCacheDir(), cameraFileName, bitmap);
-                    if (requestCode == AVATAR_ALBUM_REQUEST)
-                        avatarPath = file.getName();
-                    uploadFile(Uri.fromFile(file), file.getName(), requestCode);
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                    doCropPhoto(data.getData(),0,requestCode);
+//                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
+//
+//
+//                    File file = Utils.getInstance().bitmapToFile(getCacheDir(), cameraFileName, bitmap);
+//
+//
+//                    if (requestCode == AVATAR_ALBUM_REQUEST)
+//                        avatarPath = file.getName();
+//
+//
+//                    uploadFile(Uri.fromFile(file), file.getName(), requestCode);
 
             } else {
                 toast.setText("請重試一次");
                 toast.show();
             }
+        }
+        else if(requestCode == AVATAR_ALBUM_CROP_REQUEST || requestCode == ALBUM_CROP_REQUEST){
+            if (data.hasExtra(CropImageActivity.EXTRA_IMAGE) && data != null) {
+                //取得裁切後圖片的暫存位置
+                String filePath = data.getStringExtra(CropImageActivity.EXTRA_IMAGE);
+                if (filePath.indexOf(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "DCIM") != -1) {
+                    File imgFile = new File(filePath);
+                    if (imgFile.exists()) {
+                        //代入已設定好的圖片size
+                        int photoSize = getResources().getDimensionPixelSize(R.dimen.photo_size);
+                        //使用寫好的方法將路徑檔做成bitmap檔
+                        Bitmap realBitmap = BitmapUtil.decodeSampledBitmap(imgFile.getAbsolutePath(), photoSize, photoSize);
+                        File file = Utils.getInstance().bitmapToFile(getCacheDir(), cameraFileName, realBitmap);
+
+                        if(requestCode == AVATAR_ALBUM_CROP_REQUEST){
+                            avatarPath = file.getName();
+                            sharedPreferences.edit().putString("avatarPath",avatarPath).commit();
+                        }
+
+                        uploadFile(Uri.fromFile(file), file.getName(), requestCode);
+                    }
+                    }
+            }
+        }
+    }
+
+    private void doCropPhoto(Uri uri, int degree, int requestCode) {
+        Intent intent = new Intent(MainActivity.this, CropImageActivity.class);
+        intent.setData(uri);
+        intent.putExtra("degree", degree);
+        if(requestCode == ALBUM_REQUEST){
+            startActivityForResult(intent, ALBUM_CROP_REQUEST);
+        }else if(requestCode == AVATAR_ALBUM_REQUEST){
+            startActivityForResult(intent, AVATAR_ALBUM_CROP_REQUEST);
         }
     }
 
@@ -556,15 +595,24 @@ public class MainActivity extends AppCompatActivity {
             String userName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
             long time = new Date().getTime();
 
-            if (requestCode == CAMERA_REQUEST || requestCode == ALBUM_REQUEST) {//上傳圖片
-                reference.push().setValue(new ChatMessage(userName, time, uuid, fileName));
-            } else {//更新大頭貼
+            if (requestCode == CAMERA_REQUEST || requestCode == ALBUM_REQUEST || requestCode == ALBUM_CROP_REQUEST) {//上傳圖片
+                String key = reference.push().getKey();
+                keyList.add(key);
+                reference.child(key).setValue(new ChatMessage(userName,"", time, uuid, fileName,avatarPath));
+                Set<String> saveKeyList = new HashSet<>();
+                for(int i = 0; i< keyList.size(); i++){
+                    saveKeyList.add(keyList.get(i));
+                }
+                sharedPreferences.edit().putStringSet("keyList",saveKeyList).commit();
+
+            } else if(requestCode == AVATAR_ALBUM_CROP_REQUEST){//更新大頭貼
 
                 Map<String, Object> map = new HashMap<>();
                 for (int i = 0; i < keyList.size(); i++) {
                     map.put(keyList.get(i)+"/avatarPath", fileName);
                 }
                 reference.updateChildren(map);
+                sharedPreferences.edit().putString("avatarPath",fileName).commit();
 
             }
 

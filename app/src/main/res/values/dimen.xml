@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="photo_size">96dp</dimen>
+    <dimen name="photo_crop_circle_radius">31dp</dimen>
+
+</resources>

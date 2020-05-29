@@ -26,7 +26,7 @@
 
                 <ImageView
                     android:id="@+id/img_info_avatar"
-                    android:background="@mipmap/iconfinder_man_196742"
+                    android:src="@mipmap/iconfinder_man_196742"
                     android:scaleType="center"
                     android:layout_margin="10dp"
                     android:layout_width="90dp"

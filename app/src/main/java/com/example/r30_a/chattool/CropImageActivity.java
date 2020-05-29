@@ -132,8 +132,8 @@ public class CropImageActivity extends AppCompatActivity
         //留下畫完圓圈之後，以外的半透明圖
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OUT));//setXfermode為遮避模式，詳情可google
 //        canvas.drawCircle(centerX,centerY,radius,paint);//圓形
-//        Rect rect = new Rect(centerX-300,centerY-300,centerX+300,centerY+300);//方形
-        Rect rect = new Rect(centerX-600,centerY-350,centerX+600,centerY+350);//方形
+        Rect rect = new Rect(centerX-300,centerY-300,centerX+300,centerY+300);//方形
+//        Rect rect = new Rect(centerX-600,centerY-350,centerX+600,centerY+350);//方形
         canvas.drawRect(rect,paint);
         return output;
 

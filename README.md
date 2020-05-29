@@ -1,5 +1,10 @@
 # chatTool
-使用firebase技術做出的一個聊天室小工具
+使用firebase技術做出的一個聊天室小工具，並有以下特點
+
+．使用GMail即可登入
+．使用人數無上限
+．可更換自己的大頭貼
+．即時的通訊功能，可輸入文字、圖片訊息
 
 一、使用前需先至Firebase平台註冊登入，網址為：https://console.firebase.google.com
 

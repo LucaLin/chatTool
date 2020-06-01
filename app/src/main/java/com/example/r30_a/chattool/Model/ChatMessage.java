@@ -8,8 +8,17 @@ public class ChatMessage {
     private long time;//發送時間
     private String uuid;//用來記錄裝置，區分訊息來源
     private String filePath;//圖片路徑
-
     private String avatarPath;//大頭貼路徑
+
+    public ChatMessage(String userName, String message,long time, String uuid,String filePath,String avatarPath) {
+        this.userName = userName;
+        this.message = message;
+        this.time = time;
+        this.uuid = uuid;
+        this.filePath = filePath;
+        this.avatarPath = avatarPath;
+    }
+
 
     public ChatMessage(String userName, String message,long time, String uuid) {
         this.userName = userName;
@@ -26,14 +35,7 @@ public class ChatMessage {
         this.avatarPath = avatarPath;
     }
 
-    public ChatMessage(String userName, String message,long time, String uuid,String filePath,String avatarPath) {
-        this.userName = userName;
-        this.message = message;
-        this.time = time;
-        this.uuid = uuid;
-        this.filePath = filePath;
-        this.avatarPath = avatarPath;
-    }
+
 
 
 

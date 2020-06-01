@@ -113,11 +113,13 @@ public class MainActivity extends AppCompatActivity {
 
     SharedPreferences sharedPreferences;
 
+    private Context context;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        context = MainActivity.this;
 
         setTitle("聊天小工具");
 
@@ -163,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void findViewAndGetInstance() {
         sharedPreferences = getSharedPreferences("chatTool", MODE_PRIVATE);
-        toast = Toast.makeText(MainActivity.this, "", Toast.LENGTH_LONG);
+        toast = Toast.makeText(context, "", Toast.LENGTH_LONG);
         reference = FirebaseDatabase.getInstance().getReference();
         storageReference = FirebaseStorage.getInstance().getReference();
 
@@ -316,20 +318,12 @@ public class MainActivity extends AppCompatActivity {
         String msg = edtInput.getText().toString();
         String userName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
         long time = new Date().getTime();
+
         String key = reference.push().getKey();
         keyList.add(key);
         if (TextUtils.isEmpty(avatarPath))
             avatarPath = "";
         reference.child(key).setValue(new ChatMessage(userName, msg, time, uuid, "", avatarPath));
-        //{
-        //  "-M8TvppfDc_JZulwYR9e" : {
-        //    "avatarPath" : "20200529134748-344.jpg",
-        //    "filePath" : "",
-        //    "message" : "jrd",
-        //    "time" : 1590730652270,
-        //    "userName" : "Luca Lin",
-        //    "uuid" : "GAGQRKIVUGRSKJQO"
-        //  },
 
         edtInput.setText("");
         Set<String> saveKeyList = new HashSet<>();
@@ -373,7 +367,7 @@ public class MainActivity extends AppCompatActivity {
                     .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            AuthUI.getInstance().signOut(MainActivity.this)
+                            AuthUI.getInstance().signOut(context)
                                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                                         @Override
                                         public void onComplete(@NonNull Task<Void> task) {
@@ -403,7 +397,7 @@ public class MainActivity extends AppCompatActivity {
                     (ChatMessage.class, R.layout.message, ChatMessageHolder.class, reference.limitToLast(10)) {
 
                 public ChatMessageHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-                    View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.message, parent, false);
+                    View view = LayoutInflater.from(context).inflate(R.layout.message, parent, false);
                     ChatMessageHolder holder = new ChatMessageHolder(view);
 
                     return holder;
@@ -432,7 +426,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void showInfo(int position) {
-        final Dialog dialog = new Dialog(MainActivity.this, R.style.edit_AlertDialog_style);
+        final Dialog dialog = new Dialog(context, R.style.edit_AlertDialog_style);
         dialog.setContentView(R.layout.dialog_avatar_info);
         dialog.setCanceledOnTouchOutside(false);
 
@@ -449,7 +443,7 @@ public class MainActivity extends AppCompatActivity {
         if (!TextUtils.isEmpty(data.getAvatarPath())) {
             storageReference = FirebaseStorage.getInstance().getReference();
             storageReference = storageReference.child(data.getAvatarPath());
-            storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(MainActivity.this)
+            storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(context)
                     .load(uri)
                     .into(img_avatar)).addOnFailureListener(e -> e.printStackTrace());
         }
@@ -463,9 +457,9 @@ public class MainActivity extends AppCompatActivity {
             typeList.add("拍照");
             typeList.add("從相簿選");
 
-            View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.popup_window, null, false);
+            View view = LayoutInflater.from(context).inflate(R.layout.popup_window, null, false);
             ListView listView = view.findViewById(R.id.type_listview);
-            ArrayAdapter<String> nameAdapter = new ArrayAdapter<>(MainActivity.this,
+            ArrayAdapter<String> nameAdapter = new ArrayAdapter<>(context,
                     android.R.layout.simple_list_item_1,
                     typeList);
             listView.setAdapter(nameAdapter);
@@ -559,7 +553,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void doCropPhoto(Uri uri, int degree, int requestCode) {
-        Intent intent = new Intent(MainActivity.this, CropImageActivity.class);
+        Intent intent = new Intent(context, CropImageActivity.class);
         intent.setData(uri);
         intent.putExtra("degree", degree);
         if (requestCode == ALBUM_REQUEST || requestCode == CAMERA_REQUEST) {
@@ -666,7 +660,7 @@ public class MainActivity extends AppCompatActivity {
                         if (!TextUtils.isEmpty(avatarPath)) {
                             storageReference = FirebaseStorage.getInstance().getReference();
                             storageReference = storageReference.child(avatarPath);
-                            storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(MainActivity.this)
+                            storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(context)
                                     .load(uri)
                                     .into(img_avatar_other)).addOnFailureListener(e -> e.printStackTrace());
                         }
@@ -688,16 +682,13 @@ public class MainActivity extends AppCompatActivity {
                             storageReference = FirebaseStorage.getInstance().getReference();
                             storageReference = storageReference.child(filePath);
                             //讀取圖片
-                            storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(MainActivity.this)
+                            storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(context)
                                     .load(uri)
-                                    .into(imgMsg_other)).addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    e.printStackTrace();
-                                    toast.setText("請重新讀取");
-                                    toast.show();
-                                }
-                            });
+                                    .into(imgMsg_other)).addOnFailureListener(e -> {
+                                        e.printStackTrace();
+                                        toast.setText("請重新讀取");
+                                        toast.show();
+                                    });
                             txv_time_imgOther.setText(sendTime);
                             imgMsg_other.setOnClickListener(v -> showPhoto(chatMessage));
                         }
@@ -711,7 +702,7 @@ public class MainActivity extends AppCompatActivity {
                         if (!TextUtils.isEmpty(avatarPath)) {
                             storageReference = FirebaseStorage.getInstance().getReference();
                             storageReference = storageReference.child(avatarPath);
-                            storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(MainActivity.this)
+                            storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(context)
                                     .load(uri)
                                     .into(img_avatar_user)).addOnFailureListener(e -> e.printStackTrace());
                         }
@@ -732,14 +723,9 @@ public class MainActivity extends AppCompatActivity {
 
                             storageReference = FirebaseStorage.getInstance().getReference();
                             storageReference = storageReference.child(filePath);
-                            storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(MainActivity.this)
+                            storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(context)
                                     .load(uri)
-                                    .into(imgMsg_user)).addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    e.printStackTrace();
-                                }
-                            });
+                                    .into(imgMsg_user)).addOnFailureListener(e -> e.printStackTrace());
 
                             txv_time_imgUSer.setVisibility(View.VISIBLE);
                             txvTime_User.setVisibility(View.GONE);
@@ -756,12 +742,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void showPhoto(ChatMessage chatMessage) {
-            Dialog dialog = new Dialog(MainActivity.this, R.style.edit_AlertDialog_style);
+            Dialog dialog = new Dialog(context, R.style.edit_AlertDialog_style);
             dialog.setContentView(R.layout.dialog_photo);
             final ImageView img_photo = dialog.findViewById(R.id.img_dialog_photo);
             storageReference = FirebaseStorage.getInstance().getReference();
             storageReference = storageReference.child(chatMessage.getFilePath());
-            storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(MainActivity.this)
+            storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(context)
                     .load(uri)
                     .into(img_photo));
 

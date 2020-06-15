@@ -1,5 +1,6 @@
 package com.example.r30_a.chattool.Util;
 
+import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -44,6 +45,12 @@ public class Utils {
         }
 
         return dir;
+    }
+
+    public int getDeviceRotation(Activity activity){
+        int degree = 0;
+        degree = activity.getWindowManager().getDefaultDisplay().getRotation();
+        return degree;
     }
 
     // 取得圖片旋轉的角度

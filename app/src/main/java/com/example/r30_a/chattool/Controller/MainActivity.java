@@ -46,11 +46,8 @@ import com.example.r30_a.chattool.Util.BitmapUtil;
 import com.example.r30_a.chattool.Util.PermissionTool;
 import com.example.r30_a.chattool.Util.Utils;
 import com.firebase.ui.auth.AuthUI;
-//import com.firebase.ui.database.FirebaseListOptions;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
-//import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -74,7 +71,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-
 public class MainActivity extends AppCompatActivity {
 
     // 取得結果用的 Request Code
@@ -86,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
     private final int AVATAR_CROP_REQUEST = 5006;
     public static final int SIGN_IN_REQUEST = 1;
     private static final int REQUEST_CAMERA_AND_WRITE_STORAGE = 5000;
-    public static final String AUTHORITY = "com.example.r30_a.fileprovider";
+    public static final String AUTHORITY = "com.example.r30_a.fileprovider";//使用時請改成自己的package path
 
     private Toast toast;
 
@@ -121,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         context = MainActivity.this;
 
-        setTitle("聊天小工具");
+        setTitle(getResources().getString(R.string.titleName));
 
         setUUID();//取得裝置uuid
 
@@ -159,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
         for (String s : saveKeyList) {
             keyList.add(s);
         }
-        avatarPath = sharedPreferences.getString("avatarPath", "");
+        avatarPath = sharedPreferences.getString(getResources().getString(R.string.avatarPath), "");
 
     }
 
@@ -454,8 +450,8 @@ public class MainActivity extends AppCompatActivity {
         img_changeAvatar.setOnClickListener(v -> {
 
             ArrayList<String> typeList = new ArrayList<>();
-            typeList.add("拍照");
-            typeList.add("從相簿選");
+            typeList.add(getResources().getString(R.string.takePhoto));
+            typeList.add(getResources().getString(R.string.fromAlbum));
 
             View view = LayoutInflater.from(context).inflate(R.layout.popup_window, null, false);
             ListView listView = view.findViewById(R.id.type_listview);
@@ -515,7 +511,7 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             } else {
-                toast.setText("請重試一次");
+                toast.setText(getResources().getString(R.string.retryAgain));
                 toast.show();
             }
 
@@ -524,7 +520,7 @@ public class MainActivity extends AppCompatActivity {
                 doCropPhoto(data.getData(), 0, requestCode);
 
             } else {
-                toast.setText("請重試一次");
+                toast.setText(getResources().getString(R.string.retryAgain));
                 toast.show();
             }
         } else if (requestCode == AVATAR_CROP_REQUEST || requestCode == CROP_REQUEST) {
@@ -542,7 +538,7 @@ public class MainActivity extends AppCompatActivity {
 
                         if (requestCode == AVATAR_CROP_REQUEST) {//改大頭貼的動作才換路徑
                             avatarPath = file.getName();
-                            sharedPreferences.edit().putString("avatarPath", avatarPath).commit();
+                            sharedPreferences.edit().putString(getResources().getString(R.string.avatarPath), avatarPath).commit();
                         }
 
                         uploadFile(Uri.fromFile(file), file.getName(), requestCode);
@@ -555,7 +551,7 @@ public class MainActivity extends AppCompatActivity {
     private void doCropPhoto(Uri uri, int degree, int requestCode) {
         Intent intent = new Intent(context, CropImageActivity.class);
         intent.setData(uri);
-        intent.putExtra("degree", degree);
+        intent.putExtra(getResources().getString(R.string.degree), degree);
         if (requestCode == ALBUM_REQUEST || requestCode == CAMERA_REQUEST) {
             startActivityForResult(intent, CROP_REQUEST);
         } else if (requestCode == AVATAR_ALBUM_REQUEST || requestCode == AVATAR_CAMERA_REQUEST) {
@@ -595,7 +591,7 @@ public class MainActivity extends AppCompatActivity {
                     map.put(keyList.get(i) + "/avatarPath", fileName);
                 }
                 reference.updateChildren(map);
-                sharedPreferences.edit().putString("avatarPath", fileName).commit();
+                sharedPreferences.edit().putString(getResources().getString(R.string.avatarPath), fileName).commit();
 
             }
 
@@ -685,10 +681,10 @@ public class MainActivity extends AppCompatActivity {
                             storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(context)
                                     .load(uri)
                                     .into(imgMsg_other)).addOnFailureListener(e -> {
-                                        e.printStackTrace();
-                                        toast.setText("請重新讀取");
-                                        toast.show();
-                                    });
+                                e.printStackTrace();
+                                toast.setText(getResources().getString(R.string.retryAgain));
+                                toast.show();
+                            });
                             txv_time_imgOther.setText(sendTime);
                             imgMsg_other.setOnClickListener(v -> showPhoto(chatMessage));
                         }
@@ -734,9 +730,7 @@ public class MainActivity extends AppCompatActivity {
                             imgMsg_user.setOnClickListener(v -> showPhoto(chatMessage));
                         }
 
-
                     }
-
                 }
             }
         }

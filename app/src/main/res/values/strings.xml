@@ -1,9 +1,19 @@
 <resources>
     <string name="app_name">ChatTool</string>
+    <string name="titleName">聊天小工具</string>
     <string name="loginSuccess">登入成功</string>
     <string name="loginFail">登入失敗，請稍候再試</string>
 
     <string name="welcome">歡迎回來： </string>
 
     <string name="logOut">登出</string>
+
+    <string name="degree">degree</string>
+    <string name="avatarPath">avatarPath</string>
+
+    <string name="takePhoto">拍照</string>
+    <string name="fromAlbum">從相簿選</string>
+    <string name="retryAgain">請重試一次</string>
+
+
 </resources>

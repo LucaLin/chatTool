@@ -6,7 +6,13 @@
 ．可更換自己的大頭貼
 ．即時的通訊功能，可輸入文字、圖片訊息
 
+![image](https://github.com/LucaLin/chatTool/blob/master/screenshots/1.PNG)
+
 一、使用前需先至Firebase平台註冊登入，網址為：https://console.firebase.google.com
+
+![image](https://github.com/LucaLin/chatTool/blob/master/screenshots/2.png)
+
+
 
 二、將Firebase工具導入gradle中
 
@@ -34,6 +40,8 @@
 
 使用AuthUI工具取得實體後，建立SignIn動作並回傳結果至Activity中
 
+![image](https://github.com/LucaLin/chatTool/blob/master/screenshots/3.PNG)
+
 四、登出動作
 
     AuthUI.getInstance().signOut(this)
@@ -46,6 +54,8 @@
                     });
   
 一樣使用AuthUI工具取得實體，呼叫SignOut方法，並加上listener完成登出後的動作
+
+![image](https://github.com/LucaLin/chatTool/blob/master/screenshots/4.PNG)
 
 五、發送消息至平台
 
@@ -80,6 +90,8 @@
                 }catch (Exception e){
                     e.printStackTrace();
                 }
+                
+![image](https://github.com/LucaLin/chatTool/blob/master/screenshots/5.PNG)
                 
 六、接收Firebase平台訊息
 
@@ -127,6 +139,10 @@ displayChatMsg()中
 
                 }
             };
+
+            
+![image](https://github.com/LucaLin/chatTool/blob/master/screenshots/6.PNG)
+
 
 ps：reference.limitToLast(10) → 抓取Firebase的最新10筆資料
 

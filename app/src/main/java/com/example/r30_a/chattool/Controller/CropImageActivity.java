@@ -56,7 +56,7 @@ public class CropImageActivity extends AppCompatActivity
         Uri uri = getIntent().getData();
         if(uri != null){
 
-            int degree = getIntent().getIntExtra("degree",0);
+            int degree = getIntent().getIntExtra(getResources().getString(R.string.degree),0);
             //讀取圖片
             try {
 
